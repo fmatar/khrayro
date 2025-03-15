@@ -51,5 +51,8 @@
     "onlyBuiltDependencies": [
       "esbuild"
     ]
+  },
+  "dependencies": {
+    "keycloak-js": "^26.1.4"
   }
 }

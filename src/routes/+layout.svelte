@@ -2,6 +2,8 @@
   import { theme } from '$lib/stores/theme';
   import { browser } from '$app/environment';
   import { Avatar } from '@skeletonlabs/skeleton-svelte';
+  import { onMount } from 'svelte';
+  import { initAuthorization } from '$lib/services/authService';
   import '../app.css';
 
   let { children } = $props();
@@ -16,6 +18,10 @@
         root.classList.remove('dark');
       }
     }
+  });
+
+  onMount(() => {
+    initAuthorization();
   });
 </script>
 
