@@ -22,14 +22,12 @@ export const userProfile = derived(authStore, ($authStore) => $authStore.profile
 
 // reducers
 export const clearAuthState = () => {
-	authStore.update((store) => {
-		store.isAuthenticated = false;
-		store.token = null;
-		store.profile;
-
-		localStorageService.remove(LocalStorageKey.AuthToken);
-		return store;
+	authStore.set({
+		token: null,
+		isAuthenticated: false,
+		profile: null
 	});
+	localStorageService.remove(LocalStorageKey.AuthToken);
 };
 
 export const setAuth = (data: AuthStore) => {
@@ -41,7 +39,6 @@ export const updateAuthToken = (token: string) => {
 	authStore.update((store) => {
 		store.token = token;
 		localStorageService.set(LocalStorageKey.AuthToken, token);
-
 		return store;
 	});
 };

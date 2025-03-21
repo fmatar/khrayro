@@ -7,3 +7,35 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @source '../node_modules/@skeletonlabs/skeleton-svelte/dist';
+
+/* Light mode (default) */
+:root {
+  --sf-node-bg: #ffffff;                /* Node background */
+  --sf-node-color: #000000;             /* Node text color */
+  --sf-node-border: #dddddd;            /* Node border color */
+  --sf-node-selected: #ffd700;          /* Selected node border color */
+  --sf-edge-color: #333333;             /* Edge line color */
+  --sf-edge-label-bg: #ffffff;          /* Edge label background */
+  --sf-edge-label-color: #000000;       /* Edge label text color */
+  --sf-background-color: #f0f0f0;       /* Canvas background */
+  --sf-controls-bg: #ffffff;            /* Controls background */
+  --sf-controls-color: #000000;         /* Controls icon color */
+  --sf-minimap-bg: #ffffff;             /* Minimap background */
+  --sf-minimap-node: #cccccc;           /* Minimap node color */
+}
+
+/* Dark mode */
+.dark {
+  --sf-node-bg: #333333;                /* Dark node background */
+  --sf-node-color: #ffffff;             /* Light node text */
+  --sf-node-border: #555555;            /* Dark node border */
+  --sf-node-selected: #ffcc00;          /* Selected node border in dark mode */
+  --sf-edge-color: #cccccc;             /* Light edge color */
+  --sf-edge-label-bg: #333333;          /* Dark edge label background */
+  --sf-edge-label-color: #ffffff;       /* Light edge label text */
+  --sf-background-color: #1a1a1a;       /* Dark canvas background */
+  --sf-controls-bg: #333333;            /* Dark controls background */
+  --sf-controls-color: #ffffff;         /* Light controls icon color */
+  --sf-minimap-bg: #333333;             /* Dark minimap background */
+  --sf-minimap-node: #555555;           /* Dark minimap node color */
+}
