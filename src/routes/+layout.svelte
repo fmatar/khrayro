@@ -67,19 +67,20 @@
 </svelte:head>
 
 <!-- Root layout container -->
-<div class="flex h-screen bg-white dark:bg-gray-900 text-gray-800 dark:text-white">
+<div class="flex h-screen">
   <!-- Sidebar with Navigation.Rail (hidden on small screens) -->
-  <aside class="hidden md:flex md:flex-col w-64 h-full shadow-md overflow-hidden">
-    <div class="flex flex-col h-full">
+  <aside class="hidden md:flex md:flex-col h-full shadow-md overflow-hidden">
+    <div class="flex flex-col h-full justify-start">
       <Navigation.Rail expanded={isExpanded}>
         <!-- Header section -->
         {#snippet header()}
           <div class="flex flex-col space-y-2">
             <Navigation.Tile
+              classes="navigation-tile"
               labelExpanded="Menu"
               onclick={toggleExpanded}
               title="Toggle Menu Width">
-              <div class=" flex items-center justify-center">
+              <div class="icon-wrapper">
                 <IconMenu />
               </div>
             </Navigation.Tile>
@@ -88,21 +89,31 @@
 
         <!-- Main navigation tiles -->
         {#snippet tiles()}
-          <div class="flex flex-col space-y-2">
-            <Navigation.Tile labelExpanded="Browse Files" href="#/files">
-              <IconFolder />
+          <div>
+            <Navigation.Tile classes="navigation-tile" labelExpanded="Browse Files" href="#/files">
+              <div>
+                <IconFolder />
+              </div>
             </Navigation.Tile>
-            <Navigation.Tile labelExpanded="Browse Images" href="#/images">
-              <IconImage />
+            <Navigation.Tile classes="navigation-tile" labelExpanded="Browse Images" href="#/images">
+              <div>
+                <IconImage />
+              </div>
             </Navigation.Tile>
-            <Navigation.Tile labelExpanded="Browse Music" href="#/music">
-              <IconMusic />
+            <Navigation.Tile classes="navigation-tile" labelExpanded="Browse Music" href="#/music">
+              <div>
+                <IconMusic />
+              </div>
             </Navigation.Tile>
-            <Navigation.Tile labelExpanded="Browse Videos" href="#/videos">
-              <IconVideo />
+            <Navigation.Tile classes="navigation-tile" labelExpanded="Browse Videos" href="#/videos">
+              <div>
+                <IconVideo />
+              </div>
             </Navigation.Tile>
-            <Navigation.Tile labelExpanded="Browse Games" href="#/games">
-              <IconGames />
+            <Navigation.Tile classes="navigation-tile" labelExpanded="Browse Games" href="#/games">
+              <div>
+                <IconGames />
+              </div>
             </Navigation.Tile>
           </div>
         {/snippet}
@@ -110,11 +121,8 @@
         <!-- Footer section -->
         {#snippet footer()}
           <div class="flex flex-col space-y-2 mt-auto">
-            <Navigation.Tile
-              labelExpanded="Settings"
-              href="#/settings"
-              title="Settings">
-              <div class="w-6 h-6 flex items-center justify-center">
+            <Navigation.Tile labelExpanded="Settings" href="#/settings" title="Settings">
+              <div>
                 <IconSettings />
               </div>
             </Navigation.Tile>
@@ -127,7 +135,7 @@
   <!-- Main content area -->
   <div class="flex-1 flex flex-col">
     <!-- Sticky header -->
-    <header class="sticky top-0 z-10 bg-white dark:bg-gray-900 p-4 shadow-md">
+    <header class="sticky top-0 z-10 p-4 shadow-md">
       <Header {...headerProps} />
     </header>
 
@@ -135,12 +143,15 @@
     <main class="flex-1 overflow-y-auto p-4">
       {@render children()}
     </main>
-  </div>
-</div>
-
-<!-- Footer -->
-<footer class="bg-gray-100 dark:bg-gray-800 p-4 text-gray-800 dark:text-gray-200">
+<footer class="border-t p-2">
   <div class="container mx-auto">
     <p>© 2023 My App. All rights reserved.</p>
   </div>
 </footer>
+  </div>
+
+</div>
+
+<!-- Footer -->
+
+
