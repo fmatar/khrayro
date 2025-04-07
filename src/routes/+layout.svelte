@@ -1,23 +1,21 @@
 <script lang="ts">
-  import { theme } from '$lib/stores/theme'; // Theme store (assumed)
+  import { theme } from '$lib/stores/theme';
   import { browser } from '$app/environment';
   import { onMount } from 'svelte';
-  import { initAuthorization } from '$lib/services/authService'; // Authentication service (assumed)
-  import Header from '$lib/components/Header.svelte'; // Custom header component (assumed)
-  import IconMenu from '@lucide/svelte/icons/menu'; // Lucide icons
-  import IconFolder from '@lucide/svelte/icons/folder';
+  import { initAuthorization } from '$lib/services/authService';
+  import Header from '$lib/components/Header.svelte';
+  import IconMenu from '@lucide/svelte/icons/menu';
+  import IconProject from '@lucide/svelte/icons/folder';
   import IconImage from '@lucide/svelte/icons/image';
   import IconMusic from '@lucide/svelte/icons/music';
   import IconVideo from '@lucide/svelte/icons/video';
   import IconGames from '@lucide/svelte/icons/gamepad';
   import IconSettings from '@lucide/svelte/icons/settings';
   import { Navigation } from '@skeletonlabs/skeleton-svelte';
-  import '../app.css'; // Global styles with Tailwind CSS
+  import '../app.css';
 
-  // Props for children (main content)
   let { children } = $props();
 
-  // Theme handling: Update 'dark' class on HTML element
   $effect(() => {
     if (browser) {
       const root: HTMLElement = document.documentElement;
@@ -29,12 +27,10 @@
     }
   });
 
-  // Initialize authentication on mount
   onMount(() => {
     initAuthorization();
   });
 
-  // Header props (customize as needed)
   let headerProps = {
     projectName: 'Project Name',
     workflowName: 'Workflow Name',
@@ -43,16 +39,13 @@
     userAvatar: 'https://i.pravatar.cc/150?img=48'
   };
 
-  // Navigation rail state
   let isExpanded = $state(true);
 
-  // Toggle navigation rail expansion
   function toggleExpanded() {
     isExpanded = !isExpanded;
   }
 </script>
 
-<!-- Set initial theme to prevent flash of unthemed content -->
 <svelte:head>
   <script>
     (function() {
@@ -66,92 +59,98 @@
   </script>
 </svelte:head>
 
-<!-- Root layout container -->
 <div class="flex h-screen">
-  <!-- Sidebar with Navigation.Rail (hidden on small screens) -->
-  <aside class="hidden md:flex md:flex-col h-full shadow-md overflow-hidden">
-    <div class="flex flex-col h-full justify-start">
-      <Navigation.Rail expanded={isExpanded}>
-        <!-- Header section -->
-        {#snippet header()}
-          <div class="flex flex-col space-y-2">
-            <Navigation.Tile
-              classes="navigation-tile"
-              labelExpanded="Menu"
-              onclick={toggleExpanded}
-              title="Toggle Menu Width">
-              <div class="icon-wrapper">
-                <IconMenu />
-              </div>
-            </Navigation.Tile>
-          </div>
-        {/snippet}
+  <!-- Sidebar with Navigation.Rail -->
+  <aside class="hidden md:flex md:flex-col h-full bg-surface-50-950 shadow-md nav-rail">
+    <Navigation.Rail
+      expanded={isExpanded}
+      background="bg-surface-50-950"
+      width="w-16"
+      widthExpanded="w-48"
+      padding="p-2"
+      tilesGap="gap-1"
+      classes="transition-all duration-300 ease-in-out"
+    >
+      {#snippet header()}
+        <Navigation.Tile
+          labelExpanded="Menu"
+          onclick={toggleExpanded}
+          title="Toggle Menu Width"
+          classes="preset-tonal hover:preset-filled rounded-container"
+        >
+          <IconMenu size={24} />
+        </Navigation.Tile>
+      {/snippet}
 
-        <!-- Main navigation tiles -->
-        {#snippet tiles()}
-          <div>
-            <Navigation.Tile classes="navigation-tile" labelExpanded="Browse Files" href="#/files">
-              <div>
-                <IconFolder />
-              </div>
-            </Navigation.Tile>
-            <Navigation.Tile classes="navigation-tile" labelExpanded="Browse Images" href="#/images">
-              <div>
-                <IconImage />
-              </div>
-            </Navigation.Tile>
-            <Navigation.Tile classes="navigation-tile" labelExpanded="Browse Music" href="#/music">
-              <div>
-                <IconMusic />
-              </div>
-            </Navigation.Tile>
-            <Navigation.Tile classes="navigation-tile" labelExpanded="Browse Videos" href="#/videos">
-              <div>
-                <IconVideo />
-              </div>
-            </Navigation.Tile>
-            <Navigation.Tile classes="navigation-tile" labelExpanded="Browse Games" href="#/games">
-              <div>
-                <IconGames />
-              </div>
-            </Navigation.Tile>
-          </div>
-        {/snippet}
+      {#snippet tiles()}
+        <Navigation.Tile
+          labelExpanded="Projects"
+          href="#/files"
+          classes="preset-tonal hover:preset-filled rounded-container"
+        >
+          <IconProject size={24} />
+        </Navigation.Tile>
+        <Navigation.Tile
+          labelExpanded="Browse Images"
+          href="#/images"
+          classes="preset-tonal hover:preset-filled rounded-container"
+        >
+          <IconImage size={24} />
+        </Navigation.Tile>
+        <Navigation.Tile
+          labelExpanded="Browse Music"
+          href="#/music"
+          classes="preset-tonal hover:preset-filled rounded-container"
+        >
+          <IconMusic size={24} />
+        </Navigation.Tile>
+        <Navigation.Tile
+          labelExpanded="Browse Videos"
+          href="#/videos"
+          classes="preset-tonal hover:preset-filled rounded-container"
+        >
+          <IconVideo size={24} />
+        </Navigation.Tile>
+        <Navigation.Tile
+          labelExpanded="Browse Games"
+          href="#/games"
+          classes="preset-tonal hover:preset-filled rounded-container"
+        >
+          <IconGames size={24} />
+        </Navigation.Tile>
+      {/snippet}
 
-        <!-- Footer section -->
-        {#snippet footer()}
-          <div class="flex flex-col space-y-2 mt-auto">
-            <Navigation.Tile labelExpanded="Settings" href="#/settings" title="Settings">
-              <div>
-                <IconSettings />
-              </div>
-            </Navigation.Tile>
-          </div>
-        {/snippet}
-      </Navigation.Rail>
-    </div>
+      {#snippet footer()}
+        <Navigation.Tile
+          labelExpanded="Settings"
+          href="#/settings"
+          title="Settings"
+          classes="preset-tonal hover:preset-filled rounded-container"
+        >
+          <IconSettings size={24} />
+        </Navigation.Tile>
+      {/snippet}
+    </Navigation.Rail>
   </aside>
 
   <!-- Main content area -->
   <div class="flex-1 flex flex-col">
-    <!-- Sticky header -->
-    <header class="sticky top-0 z-10 p-4 shadow-md">
+    <header class="sticky top-0 z-10 bg-surface-50-950 shadow-md">
       <Header {...headerProps} />
     </header>
-
-    <!-- Scrollable main content -->
     <main class="flex-1 overflow-y-auto p-4">
       {@render children()}
     </main>
-<footer class="border-t p-2">
-  <div class="container mx-auto">
-    <p>© 2023 My App. All rights reserved.</p>
+    <footer class="border-t border-surface-200-800 p-2 bg-surface-50-950">
+      <div class="container mx-auto">
+        <p class="text-sm opacity-70">© 2023 My App. All rights reserved.</p>
+      </div>
+    </footer>
   </div>
-</footer>
-  </div>
-
 </div>
 
-<!-- Footer -->
-
-
+<style>
+  .nav-rail {
+    border-right: 1px solid var(--color-surface-200-800);
+  }
+</style>
