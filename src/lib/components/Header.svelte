@@ -3,52 +3,69 @@
   import { theme } from '$lib/stores/theme';
   import { userProfile } from '$lib/stores/authStore';
   import { logout } from '$lib/services/authService';
+  import IconSun from '@lucide/svelte/icons/sun';
+  import IconMoon from '@lucide/svelte/icons/moon';
+  import IconLogOut from '@lucide/svelte/icons/log-out';
 
   export let projectName = 'Project Name';
   export let workflowName = 'Workflow Name';
   export let badges = ['Badge 1', 'Badge 2', 'Badge 3', '+5'];
   export let description = 'Automate content creation, approval, and publishing workflows for marketing teams.';
 
-  // Get user avatar from authStore (fallback to placeholder)
-  let userAvatar = $userProfile?.avatar || 'https://i.pravatar.cc/150?img=24';
+  let userAvatar = $userProfile?.attributes?.['avatar'] || 'https://i.pravatar.cc/150?img=24';
 
   function handleLogout() {
-    logout(); // Explicitly call logout function
+    logout();
   }
 </script>
 
-<header class="flex items-center justify-between p-2">
-  <div class="flex flex-col pl-2">
-    <div class="text-lg font-semibold">
-      <span class="text-gray-400">{projectName} / </span>
-      <span class="text-gray-800 dark:text-white">{workflowName}</span>
+<header class="flex items-center justify-between p-2 top-0" >
+  <!-- Left Section: Project Info -->
+  <div class="flex flex-col gap-2 max-w-[70%]">
+    <div class="flex items-baseline gap-2 flex-wrap">
+      <span class="text-xl font-medium text-surface-400">{projectName}</span>
+      <span class="text-xl font-medium text-surface-800 dark:text-surface-100">/ {workflowName}</span>
     </div>
-    <div class="flex gap-2 mt-1">
+    <div class="flex gap-1 flex-wrap">
       {#each badges as badge}
-        <p>{badge}</p>
+        <span class="badge preset-filled-primary-500 text-xs font-medium">{badge}</span>
       {/each}
     </div>
-    <p class="text-gray-400 text-sm mt-1">{description}</p>
+    <p class="text-sm text-surface-600 dark:text-surface-400 line-clamp-2">{description}</p>
   </div>
 
-  <div class="flex items-center gap-4">
+  <!-- Right Section: Actions -->
+  <div class="flex items-center gap-3">
     <!-- Theme Toggle Button -->
-    <button on:click={() => theme.toggle()} class="p-2 rounded-full">
-      🌙 / ☀️
+    <button
+      on:click={() => theme.toggle()}
+      class="btn-icon preset-tonal hover:preset-filled focus:ring-2 focus:ring-primary-500 transition-all duration-200"
+      aria-label="Toggle theme between light and dark mode"
+      title="Toggle Theme"
+    >
+      {#if $theme === 'dark'}
+        <IconSun size={20} />
+      {:else}
+        <IconMoon size={20} />
+      {/if}
     </button>
 
     <!-- Logout Button -->
-    <button on:click={handleLogout} class="rounded-lg">
-      Logout
+    <button
+      on:click={handleLogout}
+      class="btn preset-tonal hover:preset-filled focus:ring-2 focus:ring-primary-500 transition-all duration-200 gap-2"
+      aria-label="Log out of the application"
+    >
+      <IconLogOut size={20} />
+      <span class="hidden sm:inline text-sm">Logout</span>
     </button>
 
-    <!-- User Avatar -->
-    <Avatar src={userAvatar} name="User" />
+    <Avatar
+      src={userAvatar}
+      name="User"
+      size="size-8"
+      rounded="rounded-full"
+      background="bg-surface-200-800"
+      classes="ring-2 ring-surface-300 dark:ring-surface-700 hover:ring-primary-500 transition-all duration-200" />
   </div>
 </header>
-
-<style>
-  button {
-    transition: background-color 0.2s ease-in-out;
-  }
-</style>

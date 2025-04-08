@@ -61,81 +61,74 @@
 
 <div class="flex h-screen">
   <!-- Sidebar with Navigation.Rail -->
-  <aside class="hidden md:flex md:flex-col h-full bg-surface-50-950 shadow-md nav-rail">
-    <Navigation.Rail
-      expanded={isExpanded}
-      background="bg-surface-50-950"
-      width="w-16"
-      widthExpanded="w-48"
-      padding="p-2"
-      tilesGap="gap-1"
-      classes="transition-all duration-300 ease-in-out"
-    >
-      {#snippet header()}
-        <Navigation.Tile
-          labelExpanded="Menu"
-          onclick={toggleExpanded}
-          title="Toggle Menu Width"
-          classes="preset-tonal hover:preset-filled rounded-container"
-        >
-          <IconMenu size={24} />
-        </Navigation.Tile>
-      {/snippet}
+<!--  <aside class="hidden md:flex md:flex-col h-full bg-surface-50-950 nav-rail">-->
+<!--    <Navigation.Rail-->
+<!--      expanded={isExpanded}-->
+<!--      background="bg-surface-50-950"-->
+<!--      width="w-16"-->
+<!--      widthExpanded="w-48"-->
+<!--      padding="p-2"-->
+<!--      tilesGap="gap-1"-->
+<!--      classes="transition-all duration-300 ease-in-out"-->
+<!--    >-->
+<!--      {#snippet header()}-->
+<!--        <Navigation.Tile-->
+<!--          labelExpanded="Menu"-->
+<!--          onclick={toggleExpanded}-->
+<!--          title="Toggle Menu Width"-->
+<!--        >-->
+<!--          <IconMenu size={24} />-->
+<!--        </Navigation.Tile>-->
+<!--      {/snippet}-->
 
-      {#snippet tiles()}
-        <Navigation.Tile
-          labelExpanded="Projects"
-          href="#/files"
-          classes="preset-tonal hover:preset-filled rounded-container"
-        >
-          <IconProject size={24} />
-        </Navigation.Tile>
-        <Navigation.Tile
-          labelExpanded="Browse Images"
-          href="#/images"
-          classes="preset-tonal hover:preset-filled rounded-container"
-        >
-          <IconImage size={24} />
-        </Navigation.Tile>
-        <Navigation.Tile
-          labelExpanded="Browse Music"
-          href="#/music"
-          classes="preset-tonal hover:preset-filled rounded-container"
-        >
-          <IconMusic size={24} />
-        </Navigation.Tile>
-        <Navigation.Tile
-          labelExpanded="Browse Videos"
-          href="#/videos"
-          classes="preset-tonal hover:preset-filled rounded-container"
-        >
-          <IconVideo size={24} />
-        </Navigation.Tile>
-        <Navigation.Tile
-          labelExpanded="Browse Games"
-          href="#/games"
-          classes="preset-tonal hover:preset-filled rounded-container"
-        >
-          <IconGames size={24} />
-        </Navigation.Tile>
-      {/snippet}
+<!--      {#snippet tiles()}-->
+<!--        <Navigation.Tile-->
+<!--          labelExpanded="Projects"-->
+<!--          href="#/files"-->
+<!--        >-->
+<!--          <IconProject size={24} />-->
+<!--        </Navigation.Tile>-->
+<!--        <Navigation.Tile-->
+<!--          labelExpanded="Browse Images"-->
+<!--          href="#/images"-->
+<!--        >-->
+<!--          <IconImage size={24} />-->
+<!--        </Navigation.Tile>-->
+<!--        <Navigation.Tile-->
+<!--          labelExpanded="Browse Music"-->
+<!--          href="#/music"-->
+<!--        >-->
+<!--          <IconMusic size={24} />-->
+<!--        </Navigation.Tile>-->
+<!--        <Navigation.Tile-->
+<!--          labelExpanded="Browse Videos"-->
+<!--          href="#/videos"-->
+<!--        >-->
+<!--          <IconVideo size={24} />-->
+<!--        </Navigation.Tile>-->
+<!--        <Navigation.Tile-->
+<!--          labelExpanded="Browse Games"-->
+<!--          href="#/games"-->
+<!--        >-->
+<!--          <IconGames size={24} />-->
+<!--        </Navigation.Tile>-->
+<!--      {/snippet}-->
 
-      {#snippet footer()}
-        <Navigation.Tile
-          labelExpanded="Settings"
-          href="#/settings"
-          title="Settings"
-          classes="preset-tonal hover:preset-filled rounded-container"
-        >
-          <IconSettings size={24} />
-        </Navigation.Tile>
-      {/snippet}
-    </Navigation.Rail>
-  </aside>
+<!--      {#snippet footer()}-->
+<!--        <Navigation.Tile-->
+<!--          labelExpanded="Settings"-->
+<!--          href="#/settings"-->
+<!--          title="Settings"-->
+<!--        >-->
+<!--          <IconSettings size={24} />-->
+<!--        </Navigation.Tile>-->
+<!--      {/snippet}-->
+<!--    </Navigation.Rail>-->
+<!--  </aside>-->
 
   <!-- Main content area -->
   <div class="flex-1 flex flex-col">
-    <header class="sticky top-0 z-10 bg-surface-50-950 shadow-md">
+    <header class="sticky top-0 border-b border-surface-200-800 p-2 bg-surface-50-950">
       <Header {...headerProps} />
     </header>
     <main class="flex-1 overflow-y-auto p-4">
