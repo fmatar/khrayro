@@ -39,7 +39,7 @@
     <!-- Theme Toggle Button -->
     <button
       on:click={() => theme.toggle()}
-      class="btn-icon preset-tonal hover:preset-filled focus:ring-2 focus:ring-primary-500 transition-all duration-200"
+      class="btn-icon preset-tonal hover:preset-filled"
       aria-label="Toggle theme between light and dark mode"
       title="Toggle Theme"
     >
@@ -53,15 +53,13 @@
     <!-- Logout Button -->
     <button
       on:click={handleLogout}
-      class="btn preset-tonal hover:preset-filled focus:ring-2 focus:ring-primary-500 transition-all duration-200 gap-2"
+      class="btn-icon preset-tonal hover:preset-filled"
       aria-label="Log out of the application"
     >
       <IconLogOut size={20} />
-      <span class="hidden sm:inline text-sm">Logout</span>
     </button>
 
-    <Avatar
-      src={userAvatar}
+    <Avatar src={userAvatar}
       name="User"
       size="size-8"
       rounded="rounded-full"

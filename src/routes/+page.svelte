@@ -155,16 +155,20 @@
         style="min-height: 1.5em; max-height: 7.5em; overflow-y: auto;"
       />
       <div class="flex justify-between items-center">
+
+        <div class="flex items-center gap-4">
+          <span class="text-xs text-surface-400">
+            {messages.length} {messages.length === 1 ? 'message' : 'messages'}
+          </span>
+        </div>
         <div class="flex gap-2">
           <button
-            on:click={sendMessage}
+            on:click={clearChat}
             class="p-2 rounded-full bg-primary-500 hover:bg-primary-600
-                   text-surface-100 transition-colors duration-200 shadow-sm
-                   disabled:opacity-50 disabled:pointer-events-none"
-            disabled={inputText.trim() === ''}
-            title="Send message"
+                   text-surface-100 transition-colors duration-200 shadow-sm"
+            title="Clear"
           >
-            <IconSend size={20} class="shrink-0" />
+            <IconTrash size={20} class="shrink-0" />
           </button>
           <button
             on:click={handleVoice}
@@ -182,19 +186,16 @@
           >
             <IconPaperclip size={20} class="shrink-0" />
           </button>
-        </div>
-        <div class="flex items-center gap-4">
           <button
-            on:click={clearChat}
-            class="btn preset-tonal hover:preset-filled transition-all duration-200 text-sm"
-            title="Clear Chat"
+            on:click={sendMessage}
+            class="p-2 rounded-full bg-primary-500 hover:bg-primary-600
+                   text-surface-100 transition-colors duration-200 shadow-sm
+                   disabled:opacity-50 disabled:pointer-events-none"
+            disabled={inputText.trim() === ''}
+            title="Send message"
           >
-            <IconTrash size={16} class="mr-1.5" />
-            <span>Clear history</span>
+            <IconSend size={20} class="shrink-0" />
           </button>
-          <span class="text-xs text-surface-400">
-            {messages.length} {messages.length === 1 ? 'message' : 'messages'}
-          </span>
         </div>
       </div>
     </div>
