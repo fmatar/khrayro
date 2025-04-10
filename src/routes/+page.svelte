@@ -7,9 +7,10 @@
   import IconPaperclip from '@lucide/svelte/icons/paperclip';
   import ConfirmationModal from '$lib/components/ConfirmationModal.svelte';
 
+  // Updated Message interface to match server's ChatMessage
   interface Message {
     id: number;
-    sender: 'user' | 'bot';
+    source: 'USER' | 'AGENT';
     text: string;
     timestamp: string;
   }
@@ -18,66 +19,81 @@
   let inputText = $state('');
   let chatContainer: HTMLElement;
   let textareaRef: HTMLTextAreaElement;
+  let ws: WebSocket | null = null;
+  let username = $state('user'); // Username for WebSocket path
 
   // Modal state
   let showModal = $state(false);
   let messageToDelete = $state<number | null>(null);
 
-  function getTimestamp(): string {
-    return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // WebSocket setup
+  function connectWebSocket() {
+    ws = new WebSocket(`ws://localhost:8080/chat/${username}`);
+
+    ws.onopen = () => {
+      console.log(`Connected to WebSocket as ${username}`);
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      const newMessage: Message = {
+        id: messages.length,
+        source: data.from,
+        text: data.message,
+        timestamp: new Date(data.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      // Only add the message if it’s from AGENT or a system message (USER_JOINED/USER_LEFT)
+      if (data.from === 'AGENT' || data.type !== 'CHAT_MESSAGE') {
+        messages = [...messages, newMessage];
+        scrollToBottom();
+      }
+    };
+
+    ws.onclose = () => {
+      console.log('Disconnected from WebSocket');
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
   }
 
-  function getBotResponse(userText: string): string {
-    const trimmedText = userText.trim().toLowerCase();
-
-    if (trimmedText.includes('hello') || trimmedText.includes('hi')) {
-      return 'Hey there! How can I assist you today?';
-    }
-    if (trimmedText.includes('how are you') || trimmedText.includes('you doing')) {
-      return 'I’m doing great, thanks for asking! How about you?';
-    }
-    if (trimmedText.includes('bye') || trimmedText.includes('goodbye')) {
-      return 'See you later! Have a good one!';
-    }
-    if (trimmedText.includes('what') && trimmedText.includes('time')) {
-      return `It’s currently ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} where I am!`;
-    }
-    if (trimmedText === '' || trimmedText === ' ') {
-      return 'Did you mean to say something? I’m all ears!';
-    }
-
-    const fallbackResponses = [
-      `You said "${userText}". Interesting! What’s on your mind?`,
-      `Hmm, "${userText}"? That’s a new one for me. Tell me more!`,
-      `I see: "${userText}". Anything else you’d like to chat about?`,
-      `"${userText}" — cool! What’s next?`
-    ];
-    return fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
-  }
+  // Connect on mount, cleanup on unmount
+  $effect(() => {
+    connectWebSocket();
+    return () => {
+      if (ws) ws.close();
+    };
+  });
 
   function sendMessage() {
-    if (inputText.trim() === '') return;
+    if (inputText.trim() === '' || !ws) return;
 
     const userMessage: Message = {
       id: messages.length,
-      sender: 'user',
+      source: 'USER',
       text: inputText.trim(),
-      timestamp: getTimestamp()
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
+    // Add user message locally
     messages = [...messages, userMessage];
 
-    const botMessage: Message = {
-      id: messages.length,
-      sender: 'bot',
-      text: getBotResponse(inputText),
-      timestamp: getTimestamp()
+    const chatMessage = {
+      type: 'CHAT_MESSAGE',
+      from: 'USER',
+      message: inputText.trim(),
+      ts: new Date().toISOString()
     };
-    messages = [...messages, botMessage];
 
+    ws.send(JSON.stringify(chatMessage));
     inputText = '';
     textareaRef?.focus();
+    scrollToBottom();
+  }
 
+  function scrollToBottom() {
     setTimeout(() => {
       if (chatContainer) {
         chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -90,7 +106,6 @@
     showModal = true;
   }
 
-  // Updated to accept an event parameter for consistency with the modal's button click
   function confirmDelete(event: Event) {
     if (messageToDelete !== null) {
       messages = messages.filter((msg) => msg.id !== messageToDelete);
@@ -99,7 +114,6 @@
     showModal = false;
   }
 
-  // Updated to accept an event parameter for consistency with the modal's button click
   function cancelDelete(event: Event) {
     messageToDelete = null;
     showModal = false;
@@ -151,11 +165,11 @@
     {:else}
       {#each messages as message (message.id)}
         <div
-          class="flex {message.sender === 'user' ? 'justify-end' : 'justify-start'}"
+          class="flex {message.source === 'USER' ? 'justify-end' : 'justify-start'}"
           transition:fade={{ duration: 200 }}
         >
           <div class="flex items-start gap-2 max-w-[70%]">
-            {#if message.sender === 'bot'}
+            {#if message.source === 'AGENT'}
               <Avatar
                 src="https://i.pravatar.cc/150?img=3"
                 name="Bot"
@@ -165,26 +179,28 @@
               />
             {/if}
             <div
-              class="card p-3 rounded-container flex items-center gap-2 {message.sender === 'user'
+              class="card p-3 rounded-container flex items-center gap-2 {message.source === 'USER'
                 ? 'preset-filled-primary-500 text-surface-100'
                 : 'bg-surface-100-900 text-surface-900 dark:text-surface-100'}"
               role="article"
-              aria-label="{message.sender === 'user' ? 'You' : 'Bot'} said at {message.timestamp}"
+              aria-label="{message.source === 'USER' ? 'You' : 'Bot'} said at {message.timestamp}"
             >
               <p>{message.text}</p>
               <small class="opacity-60 text-xs mt-1">{message.timestamp}</small>
-              <button
-                onclick={() => openDeleteModal(message.id)}
-                class="p-1 rounded-full hover:bg-surface-200-800 text-surface-500 hover:text-red-500 transition-colors duration-200"
-                aria-label="Delete this message"
-              >
-                <IconTrash size={16} class="shrink-0" />
-              </button>
+              {#if message.source === 'USER'}
+                <button
+                  on:click={() => openDeleteModal(message.id)}
+                  class="p-1 rounded-full hover:bg-surface-200-800 text-surface-500 hover:text-red-500 transition-colors duration-200"
+                  aria-label="Delete this message"
+                >
+                  <IconTrash size={16} class="shrink-0" />
+                </button>
+              {/if}
             </div>
-            {#if message.sender === 'user'}
+            {#if message.source === 'USER'}
               <Avatar
                 src="https://i.pravatar.cc/150?img=48"
-                name="User"
+                name={username}
                 size="size-8"
                 rounded="rounded-full"
                 background="bg-surface-200-800"
@@ -201,16 +217,16 @@
     <div class="max-w-3xl mx-auto space-y-3">
       <textarea
         bind:value={inputText}
-        onkeydown={handleKeydown}
-        oninput={adjustTextareaHeight}
+        on:keydown={handleKeydown}
+        on:input={adjustTextareaHeight}
         placeholder="Compose message..."
         rows="3"
         class="input resize-none w-full bg-surface-100-900 text-surface-900 dark:text-surface-100
                border-surface-200-800 focus:ring-2 focus:ring-primary-500
                transition-all duration-200 placeholder:text-surface-400"
         style="min-height: 1.5em; max-height: 7.5em; overflow-y: auto;"
-        aria-label="Message input">
-      </textarea>
+        aria-label="Message input"
+      />
       <div class="flex justify-between items-center">
         <div class="flex items-center gap-4">
           <span class="text-xs text-surface-400" aria-live="polite">
@@ -219,7 +235,7 @@
         </div>
         <div class="flex gap-2">
           <button
-            onclick={clearChat}
+            on:click={clearChat}
             class="p-2 rounded-full bg-primary-500 hover:bg-primary-600
                    text-surface-100 transition-colors duration-200 shadow-sm"
             aria-label="Clear chat"
@@ -227,7 +243,7 @@
             <IconTrash size={20} class="shrink-0" />
           </button>
           <button
-            onclick={handleVoice}
+            on:click={handleVoice}
             class="p-2 rounded-full bg-primary-500 hover:bg-primary-600
                    text-surface-100 transition-colors duration-200 shadow-sm"
             aria-label="Record voice message"
@@ -235,7 +251,7 @@
             <IconMic size={20} class="shrink-0" />
           </button>
           <button
-            onclick={handleAttach}
+            on:click={handleAttach}
             class="p-2 rounded-full bg-primary-500 hover:bg-primary-600
                    text-surface-100 transition-colors duration-200 shadow-sm"
             aria-label="Attach file"
@@ -243,7 +259,7 @@
             <IconPaperclip size={20} class="shrink-0" />
           </button>
           <button
-            onclick={sendMessage}
+            on:click={sendMessage}
             class="p-2 rounded-full bg-primary-500 hover:bg-primary-600
                    text-surface-100 transition-colors duration-200 shadow-sm
                    disabled:opacity-50 disabled:pointer-events-none"
@@ -257,7 +273,7 @@
     </div>
   </footer>
 
-  <!-- Updated Confirmation Modal Usage -->
+  <!-- Confirmation Modal -->
   <ConfirmationModal
     open={showModal}
     onConfirm={confirmDelete}
