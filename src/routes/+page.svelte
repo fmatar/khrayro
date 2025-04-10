@@ -174,7 +174,7 @@
               <p>{message.text}</p>
               <small class="opacity-60 text-xs mt-1">{message.timestamp}</small>
               <button
-                on:click={() => openDeleteModal(message.id)}
+                onclick={() => openDeleteModal(message.id)}
                 class="p-1 rounded-full hover:bg-surface-200-800 text-surface-500 hover:text-red-500 transition-colors duration-200"
                 aria-label="Delete this message"
               >
@@ -201,16 +201,16 @@
     <div class="max-w-3xl mx-auto space-y-3">
       <textarea
         bind:value={inputText}
-        on:keydown={handleKeydown}
-        on:input={adjustTextareaHeight}
+        onkeydown={handleKeydown}
+        oninput={adjustTextareaHeight}
         placeholder="Compose message..."
         rows="3"
         class="input resize-none w-full bg-surface-100-900 text-surface-900 dark:text-surface-100
                border-surface-200-800 focus:ring-2 focus:ring-primary-500
                transition-all duration-200 placeholder:text-surface-400"
         style="min-height: 1.5em; max-height: 7.5em; overflow-y: auto;"
-        aria-label="Message input"
-      />
+        aria-label="Message input">
+      </textarea>
       <div class="flex justify-between items-center">
         <div class="flex items-center gap-4">
           <span class="text-xs text-surface-400" aria-live="polite">
@@ -219,7 +219,7 @@
         </div>
         <div class="flex gap-2">
           <button
-            on:click={clearChat}
+            onclick={clearChat}
             class="p-2 rounded-full bg-primary-500 hover:bg-primary-600
                    text-surface-100 transition-colors duration-200 shadow-sm"
             aria-label="Clear chat"
@@ -227,7 +227,7 @@
             <IconTrash size={20} class="shrink-0" />
           </button>
           <button
-            on:click={handleVoice}
+            onclick={handleVoice}
             class="p-2 rounded-full bg-primary-500 hover:bg-primary-600
                    text-surface-100 transition-colors duration-200 shadow-sm"
             aria-label="Record voice message"
@@ -235,7 +235,7 @@
             <IconMic size={20} class="shrink-0" />
           </button>
           <button
-            on:click={handleAttach}
+            onclick={handleAttach}
             class="p-2 rounded-full bg-primary-500 hover:bg-primary-600
                    text-surface-100 transition-colors duration-200 shadow-sm"
             aria-label="Attach file"
@@ -243,7 +243,7 @@
             <IconPaperclip size={20} class="shrink-0" />
           </button>
           <button
-            on:click={sendMessage}
+            onclick={sendMessage}
             class="p-2 rounded-full bg-primary-500 hover:bg-primary-600
                    text-surface-100 transition-colors duration-200 shadow-sm
                    disabled:opacity-50 disabled:pointer-events-none"
