@@ -190,7 +190,7 @@
                    text-surface-100 transition-colors duration-200 shadow-sm"
             aria-label="Clear chat"
           >
-            <IconTrash size={20} class="shrink-0" />
+            <IconTrash size={16} class="shrink-0" />
           </button>
           <button
             onclick={handleVoice}
@@ -198,7 +198,7 @@
                    text-surface-100 transition-colors duration-200 shadow-sm"
             aria-label="Record voice message"
           >
-            <IconMic size={20} class="shrink-0" />
+            <IconMic size={16} class="shrink-0" />
           </button>
           <button
             onclick={handleAttach}
@@ -206,7 +206,7 @@
                    text-surface-100 transition-colors duration-200 shadow-sm"
             aria-label="Attach file"
           >
-            <IconPaperclip size={20} class="shrink-0" />
+            <IconPaperclip size={16} class="shrink-0" />
           </button>
           <button
             onclick={sendMessage}
@@ -216,7 +216,7 @@
             disabled={inputText.trim() === ''}
             aria-label="Send message"
           >
-            <IconSend size={20} class="shrink-0" />
+            <IconSend size={16} class="shrink-0" />
           </button>
         </div>
       </div>
