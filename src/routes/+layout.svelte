@@ -55,12 +55,12 @@
     <header class="sticky top-0 border-b border-surface-200-800 p-2 bg-surface-50-950">
       <Header {...headerProps} />
     </header>
-    <main class="flex-1 overflow-y-auto p-4">
+    <main class="flex-1 overflow-y-auto">
       {@render children()}
     </main>
     <footer class="border-t border-surface-200-800 p-4 bg-surface-50-950 text-xs">
-      <div class="container mx-auto flex flex-col gap-2 text-left">
-        <div class="flex items-center gap-4">
+      <div class="container flex flex-col gap-2 text-left">
+        <div class="flex items-center">
           <p class="opacity-70">© {currentYear} My App. All rights reserved.</p>
           <span class="text-surface-400">v{appVersion}</span>
         </div>

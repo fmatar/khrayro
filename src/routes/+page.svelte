@@ -162,7 +162,7 @@
   </section>
 
   <!-- Control Panel -->
-  <footer class="p-4 bg-surface-50-950 border-t border-surface-200-800/50">
+  <footer class="p-4">
     <div class="max-w-3xl mx-auto space-y-3">
       <textarea
         bind:value={inputText}
@@ -171,14 +171,14 @@
         oninput={adjustTextareaHeight}
         placeholder="Compose message..."
         rows="3"
-        class="input resize-none w-full bg-surface-100-900 text-surface-900 dark:text-surface-100
+        class="input resize-none w-full bg-surface-100-900 text-surface-900 dark:text-surface-100 text-xs
                border-surface-200-800 focus:ring-2 focus:ring-primary-500
                transition-all duration-200 placeholder:text-surface-400"
         style="min-height: 1.5em; max-height: 7.5em; overflow-y: auto;"
         aria-label="Message input">
       </textarea>
       <div class="flex justify-between items-center">
-        <div class="flex items-center gap-4">
+        <div class="flex items-center">
           <span class="text-xs text-surface-400" aria-live="polite">
             {messages.length} {messages.length === 1 ? 'message' : 'messages'}
           </span>
