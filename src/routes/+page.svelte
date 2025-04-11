@@ -1,3 +1,4 @@
+<!-- src/routes/+page.svelte (or your component file) -->
 <script lang="ts">
   import { Avatar } from '@skeletonlabs/skeleton-svelte';
   import { fade } from 'svelte/transition';
@@ -6,88 +7,35 @@
   import IconMic from '@lucide/svelte/icons/mic';
   import IconPaperclip from '@lucide/svelte/icons/paperclip';
   import ConfirmationModal from '$lib/components/ConfirmationModal.svelte';
+  import type { Message } from '$lib/stores/websocket';
+  import { createWebSocketStore, MessageSource } from '$lib/stores/websocket';
 
-  // Updated Message interface to match server's ChatMessage
-  interface Message {
-    id: number;
-    source: 'USER' | 'AGENT';
-    text: string;
-    timestamp: string;
-  }
-
+  // Initialize WebSocket store
+  const wsStore = createWebSocketStore('user');
   let messages = $state<Message[]>([]);
   let inputText = $state('');
   let chatContainer: HTMLElement;
   let textareaRef: HTMLTextAreaElement;
-  let ws: WebSocket | null = null;
-  let username = $state('user'); // Username for WebSocket path
-
-  // Modal state
+  let username = $state('user');
   let showModal = $state(false);
   let messageToDelete = $state<number | null>(null);
 
-  // WebSocket setup
-  function connectWebSocket() {
-    ws = new WebSocket(`ws://localhost:8080/chat/${username}`);
-
-    ws.onopen = () => {
-      console.log(`Connected to WebSocket as ${username}`);
-    };
-
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      const newMessage: Message = {
-        id: messages.length,
-        source: data.from,
-        text: data.message,
-        timestamp: new Date(data.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-
-      // Only add the message if it’s from AGENT or a system message (USER_JOINED/USER_LEFT)
-      if (data.from === 'AGENT' || data.type !== 'CHAT_MESSAGE') {
-        messages = [...messages, newMessage];
-        scrollToBottom();
-      }
-    };
-
-    ws.onclose = () => {
-      console.log('Disconnected from WebSocket');
-    };
-
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-  }
-
-  // Connect on mount, cleanup on unmount
+  // Subscribe to WebSocket store and connect
   $effect(() => {
-    connectWebSocket();
+    wsStore.connect();
+    wsStore.subscribe((msgs) => {
+      messages = msgs;
+      scrollToBottom();
+    });
+    // Cleanup on unmount
     return () => {
-      if (ws) ws.close();
+      wsStore.close();
     };
   });
 
   function sendMessage() {
-    if (inputText.trim() === '' || !ws) return;
-
-    const userMessage: Message = {
-      id: messages.length,
-      source: 'USER',
-      text: inputText.trim(),
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-
-    // Add user message locally
-    messages = [...messages, userMessage];
-
-    const chatMessage = {
-      type: 'CHAT_MESSAGE',
-      from: 'USER',
-      message: inputText.trim(),
-      ts: new Date().toISOString()
-    };
-
-    ws.send(JSON.stringify(chatMessage));
+    if (inputText.trim() === '') return;
+    wsStore.send(inputText.trim());
     inputText = '';
     textareaRef?.focus();
     scrollToBottom();
@@ -165,11 +113,11 @@
     {:else}
       {#each messages as message (message.id)}
         <div
-          class="flex {message.source === 'USER' ? 'justify-end' : 'justify-start'}"
+          class="flex {message.source === MessageSource.USER ? 'justify-end' : 'justify-start'}"
           transition:fade={{ duration: 200 }}
         >
           <div class="flex items-start gap-2 max-w-[70%]">
-            {#if message.source === 'AGENT'}
+            {#if message.source === MessageSource.AGENT}
               <Avatar
                 src="https://i.pravatar.cc/150?img=3"
                 name="Bot"
@@ -179,15 +127,15 @@
               />
             {/if}
             <div
-              class="card p-3 rounded-container flex items-center gap-2 {message.source === 'USER'
+              class="card p-3 rounded-container flex items-center gap-2 {message.source === MessageSource.USER
                 ? 'preset-filled-primary-500 text-surface-100'
                 : 'bg-surface-100-900 text-surface-900 dark:text-surface-100'}"
               role="article"
-              aria-label="{message.source === 'USER' ? 'You' : 'Bot'} said at {message.timestamp}"
+              aria-label="{message.source === MessageSource.USER ? 'You' : 'Bot'} said at {message.timestamp}"
             >
               <p>{message.text}</p>
               <small class="opacity-60 text-xs mt-1">{message.timestamp}</small>
-              {#if message.source === 'USER'}
+              {#if message.source === MessageSource.USER}
                 <button
                   on:click={() => openDeleteModal(message.id)}
                   class="p-1 rounded-full hover:bg-surface-200-800 text-surface-500 hover:text-red-500 transition-colors duration-200"
@@ -197,7 +145,7 @@
                 </button>
               {/if}
             </div>
-            {#if message.source === 'USER'}
+            {#if message.source === MessageSource.USER}
               <Avatar
                 src="https://i.pravatar.cc/150?img=48"
                 name={username}
@@ -217,6 +165,7 @@
     <div class="max-w-3xl mx-auto space-y-3">
       <textarea
         bind:value={inputText}
+        bind:this={textareaRef}
         on:keydown={handleKeydown}
         on:input={adjustTextareaHeight}
         placeholder="Compose message..."
