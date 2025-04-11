@@ -1,8 +1,9 @@
 // src/lib/stores/websocket.ts
 import { writable } from 'svelte/store';
-import type { Message } from '$lib/types/message';
+export type {  Message } from '$lib/types/message';
 import type { WebSocketMessage } from '$lib/types/ws_message';
 import { MessageSource } from '$lib/types/messageSource';
+import type { Message } from '$lib/types/message';
 
 export function createWebSocketStore(username: string) {
 	const { subscribe, update } = writable<Message[]>([]);

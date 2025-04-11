@@ -1,4 +1,4 @@
-<!-- src/routes/+page.svelte (or your component file) -->
+<!-- src/routes/+page.svelte -->
 <script lang="ts">
   import { Avatar } from '@skeletonlabs/skeleton-svelte';
   import { fade } from 'svelte/transition';
@@ -101,82 +101,87 @@
 
 <div class="flex flex-col h-full bg-surface-50-950">
   <!-- Chat Feed -->
-  <section
-    bind:this={chatContainer}
-    class="flex-1 overflow-y-auto p-4 space-y-4"
-    role="log"
-    aria-label="Chat conversation"
-  >
-    {#if messages.length === 0}
-      <div class="flex items-center justify-center h-full text-surface-400">
-        <p>No messages yet. Start chatting!</p>
-      </div>
-    {:else}
-      {#each messages as message (message.id)}
-        <div
-          class="flex {message.source === MessageSource.USER ? 'justify-end' : 'justify-start'}"
-          transition:fade={{ duration: 200 }}
-        >
-          <div class="flex items-start gap-2 max-w-[70%]">
-            {#if message.source === MessageSource.AGENT}
-              <Avatar
-                src="https://i.pravatar.cc/150?img=3"
-                name="Bot"
-                size="size-8"
-                rounded="rounded-full"
-                background="bg-surface-200-800"
-              />
-            {/if}
-            <div
-              class="card p-3 rounded-container flex items-center gap-2 {message.source === MessageSource.USER
-                ? 'preset-filled-primary-500 text-surface-100'
-                : 'bg-surface-100-900 text-surface-900 dark:text-surface-100'}"
-              role="article"
-              aria-label="{message.source === MessageSource.USER ? 'You' : 'Bot'} said at {message.timestamp}"
-            >
-              <p>{message.text}</p>
-              <small class="opacity-60 text-xs mt-1">{message.timestamp}</small>
+  <div class="flex-1 rounded-container overflow-hidden">
+    <section
+      bind:this={chatContainer}
+      class="flex-1 overflow-y-auto p-4 space-y-4 chat-feed-scrollbar h-full"
+      role="log"
+      aria-label="Chat conversation"
+    >
+      {#if messages.length === 0}
+        <div class="flex items-center justify-center h-full text-surface-400">
+          <p>No messages yet. Start chatting!</p>
+        </div>
+      {:else}
+        {#each messages as message (message.id)}
+          <div
+            class="flex {message.source === MessageSource.USER ? 'justify-end' : 'justify-start'}"
+            transition:fade={{ duration: 200 }}
+          >
+            <div class="flex items-start gap-2 max-w-[70%]">
+              {#if message.source === MessageSource.AGENT}
+                <Avatar
+                  src="https://i.pravatar.cc/150?img=3"
+                  name="Bot"
+                  size="size-8"
+                  rounded="rounded-full"
+                  background="bg-surface-200-800"
+                />
+              {/if}
+              <div
+                class="card p-3 rounded-container flex items-center gap-2 {message.source === MessageSource.USER
+                  ? 'preset-filled-primary-500 text-surface-100'
+                  : 'bg-surface-100-900 text-surface-900 dark:text-surface-100'}"
+                role="article"
+                aria-label="{message.source === MessageSource.USER ? 'You' : 'Bot'} said at {message.timestamp}"
+              >
+                <p>{message.text}</p>
+                <small class="opacity-60 text-xs mt-1">{message.timestamp}</small>
+                {#if message.source === MessageSource.USER}
+                  <button
+                    onclick={() => openDeleteModal(message.id)}
+                    class="p-1 rounded-full hover:bg-surface-200-800 text-surface-500 hover:text-red-500 transition-colors duration-200"
+                    aria-label="Delete this message"
+                  >
+                    <IconTrash size={16} class="shrink-0" />
+                  </button>
+                {/if}
+              </div>
               {#if message.source === MessageSource.USER}
-                <button
-                  onclick={() => openDeleteModal(message.id)}
-                  class="p-1 rounded-full hover:bg-surface-200-800 text-surface-500 hover:text-red-500 transition-colors duration-200"
-                  aria-label="Delete this message"
-                >
-                  <IconTrash size={16} class="shrink-0" />
-                </button>
+                <Avatar
+                  src="https://i.pravatar.cc/150?img=48"
+                  name={username}
+                  size="size-8"
+                  rounded="rounded-full"
+                  background="bg-surface-200-800"
+                />
               {/if}
             </div>
-            {#if message.source === MessageSource.USER}
-              <Avatar
-                src="https://i.pravatar.cc/150?img=48"
-                name={username}
-                size="size-8"
-                rounded="rounded-full"
-                background="bg-surface-200-800"
-              />
-            {/if}
           </div>
-        </div>
-      {/each}
-    {/if}
-  </section>
+        {/each}
+      {/if}
+    </section>
+  </div>
 
   <!-- Control Panel -->
   <footer class="p-4">
     <div class="max-w-3xl mx-auto space-y-3">
-      <textarea
-        bind:value={inputText}
-        bind:this={textareaRef}
-        onkeydown="{handleKeydown}"
-        oninput={adjustTextareaHeight}
-        placeholder="Compose message..."
-        rows="3"
-        class="input resize-none w-full bg-surface-100-900 text-surface-900 dark:text-surface-100 text-xs
-               border-surface-200-800 focus:ring-2 focus:ring-primary-500
-               transition-all duration-200 placeholder:text-surface-400"
-        style="min-height: 1.5em; max-height: 7.5em; overflow-y: auto;"
-        aria-label="Message input">
-      </textarea>
+      <div class="border border-surface-200-800 focus-within:border-primary-500 rounded transition-all duration-200 overflow-hidden">
+        <textarea
+          bind:value={inputText}
+          bind:this={textareaRef}
+          onkeydown={handleKeydown}
+          oninput={adjustTextareaHeight}
+          placeholder="Compose message..."
+          rows="3"
+          class="input resize-none w-full bg-surface-100-900 text-surface-900 dark:text-surface-100 text-xs
+                 border-none focus:ring-0
+                 transition-all duration-200 placeholder:text-surface-400
+                 pr-6 textarea-scrollbar"
+          style="min-height: 1.5em; max-height: 7.5em; overflow-y: auto; box-sizing: border-box;"
+          aria-label="Message input">
+        </textarea>
+      </div>
       <div class="flex justify-between items-center">
         <div class="flex items-center">
           <span class="text-xs text-surface-400" aria-live="polite">
@@ -232,3 +237,10 @@
     message="Are you sure you want to delete this message?"
   />
 </div>
+
+<style>
+  /* Ensure box-sizing is applied */
+  .input {
+    box-sizing: border-box;
+  }
+</style>
