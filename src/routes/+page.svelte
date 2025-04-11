@@ -1,7 +1,6 @@
 <!-- src/routes/+page.svelte -->
 <script lang="ts">
   import { Avatar } from '@skeletonlabs/skeleton-svelte';
-  import { fade } from 'svelte/transition';
   import IconSend from '@lucide/svelte/icons/send';
   import IconTrash from '@lucide/svelte/icons/trash-2';
   import IconMic from '@lucide/svelte/icons/mic';
@@ -20,12 +19,17 @@
   let username = $state('user');
   let showModal = $state(false);
   let messageToDelete = $state<number | null>(null);
+  let typing = $state(false); // Track if the bot is typing
+
+  // Character limit for textarea
+  const MAX_CHARACTERS = 500;
 
   // Subscribe to WebSocket store and connect
   $effect(() => {
     wsStore.connect();
     wsStore.subscribe((msgs) => {
       messages = msgs;
+      typing = false; // Bot has responded, stop typing
       scrollToBottom();
     });
     // Cleanup on unmount
@@ -35,19 +39,25 @@
   });
 
   function sendMessage() {
-    if (inputText.trim() === '') return;
+    if (inputText.trim() === '' || inputText.length > MAX_CHARACTERS) return;
     wsStore.send(inputText.trim());
+    typing = true; // Bot starts typing when user sends a message
     inputText = '';
     textareaRef?.focus();
     scrollToBottom();
   }
 
   function scrollToBottom() {
-    setTimeout(() => {
-      if (chatContainer) {
+    if (!chatContainer) return;
+
+    // Only auto-scroll if the user is near the bottom (within 100px)
+    const isNearBottom =
+      chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < 100;
+    if (isNearBottom) {
+      setTimeout(() => {
         chatContainer.scrollTop = chatContainer.scrollHeight;
-      }
-    }, 0);
+      }, 0);
+    }
   }
 
   function openDeleteModal(id: number) {
@@ -70,6 +80,7 @@
 
   function clearChat() {
     messages = [];
+    typing = false; // Reset typing state
     textareaRef?.focus();
   }
 
@@ -97,6 +108,30 @@
       textareaRef.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
     }
   }
+
+  // Group messages by date for separators
+  function getMessageDate(timestamp: string): string {
+    const date = new Date(timestamp);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) {
+      return 'Today';
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return 'Yesterday';
+    } else {
+      return date.toLocaleDateString();
+    }
+  }
+
+  // Determine if a separator should be shown before a message
+  function shouldShowSeparator(index: number): string | null {
+    if (index === 0) return getMessageDate(messages[index].timestamp);
+    const currentDate = getMessageDate(messages[index].timestamp);
+    const previousDate = getMessageDate(messages[index - 1].timestamp);
+    return currentDate !== previousDate ? currentDate : null;
+  }
 </script>
 
 <div class="flex flex-col h-full bg-surface-50-950">
@@ -108,17 +143,24 @@
       role="log"
       aria-label="Chat conversation"
     >
-      {#if messages.length === 0}
+      {#if messages.length === 0 && !typing}
         <div class="flex items-center justify-center h-full text-surface-400">
           <p>No messages yet. Start chatting!</p>
         </div>
       {:else}
-        {#each messages as message (message.id)}
+        {#each messages as message, index (message.id)}
+          <!-- Date Separator -->
+          {#if shouldShowSeparator(index)}
+            <div class="flex items-center my-4">
+              <div class="flex-1 h-px bg-surface-200-800"></div>
+              <span class="px-4 text-xs text-surface-400">{shouldShowSeparator(index)}</span>
+              <div class="flex-1 h-px bg-surface-200-800"></div>
+            </div>
+          {/if}
           <div
             class="flex {message.source === MessageSource.USER ? 'justify-end' : 'justify-start'}"
-            transition:fade={{ duration: 200 }}
           >
-            <div class="flex items-start gap-2 max-w-[70%]">
+            <div class="flex items-start gap-2 max-w-[70%] group">
               {#if message.source === MessageSource.AGENT}
                 <Avatar
                   src="https://i.pravatar.cc/150?img=3"
@@ -129,14 +171,16 @@
                 />
               {/if}
               <div
-                class="card p-3 rounded-container flex items-center gap-2 {message.source === MessageSource.USER
+                class="card p-4 text-xs rounded-container flex items-center gap-2 {message.source === MessageSource.USER
                   ? 'preset-filled-primary-500 text-surface-100'
                   : 'bg-surface-100-900 text-surface-900 dark:text-surface-100'}"
                 role="article"
                 aria-label="{message.source === MessageSource.USER ? 'You' : 'Bot'} said at {message.timestamp}"
               >
                 <p>{message.text}</p>
-                <small class="opacity-60 text-xs mt-1">{message.timestamp}</small>
+                <small class="opacity-0 group-hover:opacity-60 text-xs mt-1 transition-opacity duration-200">
+                  {message.timestamp}
+                </small>
                 {#if message.source === MessageSource.USER}
                   <button
                     onclick={() => openDeleteModal(message.id)}
@@ -159,6 +203,32 @@
             </div>
           </div>
         {/each}
+        <!-- Typing Indicator -->
+        {#if typing}
+          <div class="flex justify-start">
+            <div class="flex items-start gap-2 max-w-[70%]">
+              <Avatar
+                src="https://i.pravatar.cc/150?img=3"
+                name="Bot"
+                size="size-8"
+                rounded="rounded-full"
+                background="bg-surface-200-800"
+              />
+              <div
+                class="card p-4 text-xs rounded-container bg-surface-100-900 text-surface-900 dark:text-surface-100"
+                role="status"
+                aria-label="Bot is typing"
+              >
+                <p class="italic">Bot is typing...</p>
+                <div class="flex gap-1">
+                  <span class="inline-block w-2 h-2 bg-primary-500 rounded-full"></span>
+                  <span class="inline-block w-2 h-2 bg-primary-500 rounded-full"></span>
+                  <span class="inline-block w-2 h-2 bg-primary-500 rounded-full"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        {/if}
       {/if}
     </section>
   </div>
@@ -183,9 +253,12 @@
         </textarea>
       </div>
       <div class="flex justify-between items-center">
-        <div class="flex items-center">
+        <div class="flex items-center gap-2">
           <span class="text-xs text-surface-400" aria-live="polite">
             {messages.length} {messages.length === 1 ? 'message' : 'messages'}
+          </span>
+          <span class="text-xs text-surface-400" aria-live="polite">
+            {inputText.length}/{MAX_CHARACTERS}
           </span>
         </div>
         <div class="flex gap-2">
@@ -218,7 +291,7 @@
             class="p-2 rounded-full bg-primary-500 hover:bg-primary-600
                    text-surface-100 transition-colors duration-200 shadow-sm
                    disabled:opacity-50 disabled:pointer-events-none"
-            disabled={inputText.trim() === ''}
+            disabled={inputText.trim() === '' || inputText.length > MAX_CHARACTERS}
             aria-label="Send message"
           >
             <IconSend size={16} class="shrink-0" />
