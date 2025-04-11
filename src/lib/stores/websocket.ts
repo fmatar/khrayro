@@ -2,11 +2,7 @@
 import { writable } from 'svelte/store';
 import type { Message } from '$lib/types/message';
 import type { WebSocketMessage } from '$lib/types/ws_message';
-
-export enum MessageSource {
-	USER = 'USER',
-	AGENT = 'AGENT'
-}
+import { MessageSource } from '$lib/types/messageSource';
 
 export function createWebSocketStore(username: string) {
 	const { subscribe, update } = writable<Message[]>([]);

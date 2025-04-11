@@ -8,7 +8,8 @@
   import IconPaperclip from '@lucide/svelte/icons/paperclip';
   import ConfirmationModal from '$lib/components/ConfirmationModal.svelte';
   import type { Message } from '$lib/stores/websocket';
-  import { createWebSocketStore, MessageSource } from '$lib/stores/websocket';
+  import { createWebSocketStore } from '$lib/stores/websocket';
+  import { MessageSource } from '$lib/types/messageSource';
 
   // Initialize WebSocket store
   const wsStore = createWebSocketStore('user');
