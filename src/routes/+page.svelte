@@ -6,9 +6,9 @@
   import IconMic from '@lucide/svelte/icons/mic';
   import IconPaperclip from '@lucide/svelte/icons/paperclip';
   import ConfirmationModal from '$lib/components/ConfirmationModal.svelte';
-  import type { Message } from '$lib/stores/websocket';
   import { createWebSocketStore } from '$lib/stores/websocket';
   import { MessageSource } from '$lib/types/messageSource';
+  import type { Message } from '$lib/types/message';
 
   // Initialize WebSocket store
   const wsStore = createWebSocketStore('user');
@@ -18,8 +18,8 @@
   let textareaRef: HTMLTextAreaElement;
   let username = $state('user');
   let showModal = $state(false);
-  let messageToDelete = $state<number | null>(null);
-  let typing = $state(false); // Track if the bot is typing
+  let messageToDelete = $state<string | null>(null);
+  let typing = $state(false);
 
   // Character limit for textarea
   const MAX_CHARACTERS = 500;
@@ -29,10 +29,8 @@
     wsStore.connect();
     wsStore.subscribe((msgs) => {
       messages = msgs;
-      typing = false; // Bot has responded, stop typing
       scrollToBottom();
     });
-    // Cleanup on unmount
     return () => {
       wsStore.close();
     };
@@ -41,7 +39,6 @@
   function sendMessage() {
     if (inputText.trim() === '' || inputText.length > MAX_CHARACTERS) return;
     wsStore.send(inputText.trim());
-    typing = true; // Bot starts typing when user sends a message
     inputText = '';
     textareaRef?.focus();
     scrollToBottom();
@@ -49,8 +46,6 @@
 
   function scrollToBottom() {
     if (!chatContainer) return;
-
-    // Only auto-scroll if the user is near the bottom (within 100px)
     const isNearBottom =
       chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < 100;
     if (isNearBottom) {
@@ -60,13 +55,14 @@
     }
   }
 
-  function openDeleteModal(id: number) {
+  function openDeleteModal(id: string) {
     messageToDelete = id;
     showModal = true;
   }
 
   function confirmDelete(event: Event) {
     if (messageToDelete !== null) {
+      wsStore.sendDeleteMessage(messageToDelete);
       messages = messages.filter((msg) => msg.id !== messageToDelete);
       messageToDelete = null;
     }
@@ -79,8 +75,9 @@
   }
 
   function clearChat() {
+    wsStore.sendClearChat();
     messages = [];
-    typing = false; // Reset typing state
+    typing = false;
     textareaRef?.focus();
   }
 
@@ -132,35 +129,46 @@
     const previousDate = getMessageDate(messages[index - 1].timestamp);
     return currentDate !== previousDate ? currentDate : null;
   }
+
+  // Format timestamp for display
+  function formatTimestamp(timestamp: string): string {
+    return timestamp;
+    // const date = new Date(timestamp);
+    // if (isNaN(date.getTime())) {
+    // 	console.error('Invalid timestamp:', timestamp);
+    // 	return 'Time unavailable'; // Fallback text
+    // }
+    // return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
 </script>
 
-<div class="flex flex-col h-full bg-surface-50-950">
+<div class="bg-surface-50-950 flex h-full flex-col">
   <!-- Chat Feed -->
-  <div class="flex-1 rounded-container overflow-hidden">
+  <div class="rounded-container flex-1 overflow-hidden">
     <section
       bind:this={chatContainer}
-      class="flex-1 overflow-y-auto p-4 space-y-4 chat-feed-scrollbar h-full"
+      class="chat-feed-scrollbar h-full flex-1 space-y-4 overflow-y-auto p-4"
       role="log"
       aria-label="Chat conversation"
     >
       {#if messages.length === 0 && !typing}
-        <div class="flex items-center justify-center h-full text-surface-400">
+        <div class="text-surface-400 flex h-full items-center justify-center">
           <p>No messages yet. Start chatting!</p>
         </div>
       {:else}
         {#each messages as message, index (message.id)}
           <!-- Date Separator -->
           {#if shouldShowSeparator(index)}
-            <div class="flex items-center my-4">
-              <div class="flex-1 h-px bg-surface-200-800"></div>
-              <span class="px-4 text-xs text-surface-400">{shouldShowSeparator(index)}</span>
-              <div class="flex-1 h-px bg-surface-200-800"></div>
+            <div class="my-4 flex items-center">
+              <div class="bg-surface-200-800 h-px flex-1"></div>
+              <span class="text-surface-400 px-4 text-xs">{shouldShowSeparator(index)}</span>
+              <div class="bg-surface-200-800 h-px flex-1"></div>
             </div>
           {/if}
           <div
             class="flex {message.source === MessageSource.USER ? 'justify-end' : 'justify-start'}"
           >
-            <div class="flex items-start gap-2 max-w-[70%] group">
+            <div class="group flex max-w-[70%] items-start gap-2">
               {#if message.source === MessageSource.AGENT}
                 <Avatar
                   src="https://i.pravatar.cc/150?img=3"
@@ -171,20 +179,25 @@
                 />
               {/if}
               <div
-                class="card p-4 text-xs rounded-container flex items-center gap-2 {message.source === MessageSource.USER
-                  ? 'preset-filled-primary-500 text-surface-100'
-                  : 'bg-surface-100-900 text-surface-900 dark:text-surface-100'}"
+                class="card rounded-container flex items-center gap-2 p-4 text-xs {message.source ===
+								MessageSource.USER
+									? 'preset-filled-primary-500 text-surface-100'
+									: 'bg-surface-100-900 text-surface-900 dark:text-surface-100'}"
                 role="article"
-                aria-label="{message.source === MessageSource.USER ? 'You' : 'Bot'} said at {message.timestamp}"
+                aria-label="{message.source === MessageSource.USER
+									? 'You'
+									: 'Bot'} said at {formatTimestamp(message.timestamp)}"
               >
                 <p>{message.text}</p>
-                <small class="opacity-0 group-hover:opacity-60 text-xs mt-1 transition-opacity duration-200">
-                  {message.timestamp}
+                <small
+                  class="mt-1 text-xs opacity-0 transition-opacity duration-200 group-hover:opacity-60"
+                >
+                  {formatTimestamp(message.timestamp)}
                 </small>
                 {#if message.source === MessageSource.USER}
                   <button
                     onclick={() => openDeleteModal(message.id)}
-                    class="p-1 rounded-full hover:bg-surface-200-800 text-surface-500 hover:text-red-500 transition-colors duration-200"
+                    class="hover:bg-surface-200-800 text-surface-500 rounded-full p-1 transition-colors duration-200 hover:text-red-500"
                     aria-label="Delete this message"
                   >
                     <IconTrash size={16} class="shrink-0" />
@@ -206,7 +219,7 @@
         <!-- Typing Indicator -->
         {#if typing}
           <div class="flex justify-start">
-            <div class="flex items-start gap-2 max-w-[70%]">
+            <div class="flex max-w-[70%] items-start gap-2">
               <Avatar
                 src="https://i.pravatar.cc/150?img=3"
                 name="Bot"
@@ -215,15 +228,15 @@
                 background="bg-surface-200-800"
               />
               <div
-                class="card p-4 text-xs rounded-container bg-surface-100-900 text-surface-900 dark:text-surface-100"
+                class="card rounded-container bg-surface-100-900 text-surface-900 dark:text-surface-100 p-4 text-xs"
                 role="status"
                 aria-label="Bot is typing"
               >
                 <p class="italic">Bot is typing...</p>
                 <div class="flex gap-1">
-                  <span class="inline-block w-2 h-2 bg-primary-500 rounded-full"></span>
-                  <span class="inline-block w-2 h-2 bg-primary-500 rounded-full"></span>
-                  <span class="inline-block w-2 h-2 bg-primary-500 rounded-full"></span>
+                  <span class="bg-primary-500 inline-block h-2 w-2 rounded-full"></span>
+                  <span class="bg-primary-500 inline-block h-2 w-2 rounded-full"></span>
+                  <span class="bg-primary-500 inline-block h-2 w-2 rounded-full"></span>
                 </div>
               </div>
             </div>
@@ -235,62 +248,65 @@
 
   <!-- Control Panel -->
   <footer class="p-4">
-    <div class="max-w-3xl mx-auto space-y-3">
-      <div class="border border-surface-200-800 focus-within:border-primary-500 rounded transition-all duration-200 overflow-hidden">
-        <textarea
+    <div class="mx-auto max-w-3xl space-y-3">
+      <div
+        class="border-surface-200-800 focus-within:border-primary-500 overflow-hidden rounded border transition-all duration-200"
+      >
+				<textarea
           bind:value={inputText}
           bind:this={textareaRef}
           onkeydown={handleKeydown}
           oninput={adjustTextareaHeight}
           placeholder="Compose message..."
           rows="3"
-          class="input resize-none w-full bg-surface-100-900 text-surface-900 dark:text-surface-100 text-xs
-                 border-none focus:ring-0
-                 transition-all duration-200 placeholder:text-surface-400
-                 pr-6 textarea-scrollbar"
+          class="input bg-surface-100-900 text-surface-900 dark:text-surface-100 placeholder:text-surface-400 textarea-scrollbar w-full
+                 resize-none border-none
+                 pr-6 text-xs transition-all
+                 duration-200 focus:ring-0"
           style="min-height: 1.5em; max-height: 7.5em; overflow-y: auto; box-sizing: border-box;"
-          aria-label="Message input">
-        </textarea>
+          aria-label="Message input"
+        ></textarea>
       </div>
-      <div class="flex justify-between items-center">
+      <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <span class="text-xs text-surface-400" aria-live="polite">
-            {messages.length} {messages.length === 1 ? 'message' : 'messages'}
-          </span>
-          <span class="text-xs text-surface-400" aria-live="polite">
-            {inputText.length}/{MAX_CHARACTERS}
-          </span>
+					<span class="text-surface-400 text-xs" aria-live="polite">
+						{messages.length}
+            {messages.length === 1 ? 'message' : 'messages'}
+					</span>
+          <span class="text-surface-400 text-xs" aria-live="polite">
+						{inputText.length}/{MAX_CHARACTERS}
+					</span>
         </div>
         <div class="flex gap-2">
           <button
             onclick={clearChat}
-            class="p-2 rounded-full bg-primary-500 hover:bg-primary-600
-                   text-surface-100 transition-colors duration-200 shadow-sm"
+            class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full
+                   p-2 shadow-sm transition-colors duration-200"
             aria-label="Clear chat"
           >
             <IconTrash size={16} class="shrink-0" />
           </button>
           <button
             onclick={handleVoice}
-            class="p-2 rounded-full bg-primary-500 hover:bg-primary-600
-                   text-surface-100 transition-colors duration-200 shadow-sm"
+            class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full
+                   p-2 shadow-sm transition-colors duration-200"
             aria-label="Record voice message"
           >
             <IconMic size={16} class="shrink-0" />
           </button>
           <button
             onclick={handleAttach}
-            class="p-2 rounded-full bg-primary-500 hover:bg-primary-600
-                   text-surface-100 transition-colors duration-200 shadow-sm"
+            class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full
+                   p-2 shadow-sm transition-colors duration-200"
             aria-label="Attach file"
           >
             <IconPaperclip size={16} class="shrink-0" />
           </button>
           <button
             onclick={sendMessage}
-            class="p-2 rounded-full bg-primary-500 hover:bg-primary-600
-                   text-surface-100 transition-colors duration-200 shadow-sm
-                   disabled:opacity-50 disabled:pointer-events-none"
+            class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full
+                   p-2 shadow-sm transition-colors duration-200
+                   disabled:pointer-events-none disabled:opacity-50"
             disabled={inputText.trim() === '' || inputText.length > MAX_CHARACTERS}
             aria-label="Send message"
           >
@@ -312,7 +328,6 @@
 </div>
 
 <style>
-  /* Ensure box-sizing is applied */
   .input {
     box-sizing: border-box;
   }
