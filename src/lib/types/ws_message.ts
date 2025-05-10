@@ -6,4 +6,5 @@ export interface WebSocketMessage {
   from: MessageSource;
   message: string;
   ts: string;
+	renderedHtml?: string | null; // Memoized HTML for performance
 }
