@@ -54,6 +54,10 @@
   },
   "dependencies": {
     "@xyflow/svelte": "1.0.0-next.4",
-    "keycloak-js": "^26.1.4"
+    "keycloak-js": "^26.1.4",
+    "rehype-stringify": "^10.0.1",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.2",
+    "unified": "^11.0.5"
   }
 }
