@@ -5,18 +5,25 @@
   import type { WebSocketMessage } from '$lib/types/ws_message';
   import MarkdownRenderer from '$lib/components/MarkdownRenderer.svelte';
 
-  export let messages: WebSocketMessage[] = [];
-  export let typing = false;
-  export let onDelete: (id: string) => void = () => {};
-  export let chatContainer: HTMLElement;
+  let {
+    messages = [] as WebSocketMessage[],
+    typing = false,
+    onDelete = () => {},
+    chatContainer = null as HTMLElement | null,
+  } = $props();
 
-  // Debug messages and filtered chatMessages
-  $: console.log('ChatMessages: messages=', messages);
-  $: chatMessages = messages.filter((msg) => msg.type === 'CHAT_MESSAGE');
-  $: console.log('ChatMessages: chatMessages=', chatMessages);
+  // Use $derived for filtered chat messages, with fallback for undefined
+  let chatMessages = $derived((messages || []).filter((msg) => msg.type === 'CHAT_MESSAGE'));
+
+  // Debug logging with $effect
+  $effect(() => {
+    console.log('ChatMessages: messages=', messages);
+    console.log('ChatMessages: chatMessages=', chatMessages);
+  });
 
   function getMessageDate(timestamp: string): string {
     const date = new Date(timestamp);
+    if (isNaN(date.getTime())) return 'Unknown Date'; // Fallback for invalid dates
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
@@ -87,7 +94,7 @@
             role="article"
             aria-label="{message.from === MessageSource.USER ? 'You' : 'Bot'} said at {formatTimestamp(message.ts)}"
           >
-            <MarkdownRenderer content={message.message || ''} preRenderedHtml={message.renderedHtml} />
+            <MarkdownRenderer content={message.message || ''} />
             <small
               class="mt-1 text-xs opacity-0 transition-opacity duration-200 group-hover:opacity-60"
             >

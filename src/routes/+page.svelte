@@ -1,4 +1,3 @@
-<!-- src/routes/+page.svelte -->
 <script lang="ts">
   import { Avatar } from '@skeletonlabs/skeleton-svelte';
   import IconSend from '@lucide/svelte/icons/send';
@@ -6,11 +5,11 @@
   import IconMic from '@lucide/svelte/icons/mic';
   import IconPaperclip from '@lucide/svelte/icons/paperclip';
   import ConfirmationModal from '$lib/components/ConfirmationModal.svelte';
+  import MarkdownRenderer from '$lib/components/MarkdownRenderer.svelte';
   import { createWebSocketStore } from '$lib/stores/websocket';
   import { MessageSource } from '$lib/types/messageSource';
   import type { Message } from '$lib/types/message';
 
-  // Initialize WebSocket store
   const wsStore = createWebSocketStore('user');
   let messages = $state<Message[]>([]);
   let inputText = $state('');
@@ -21,10 +20,8 @@
   let messageToDelete = $state<string | null>(null);
   let typing = $state(false);
 
-  // Character limit for textarea
   const MAX_CHARACTERS = 500;
 
-  // Subscribe to WebSocket store and connect
   $effect(() => {
     wsStore.connect();
     wsStore.subscribe((msgs) => {
@@ -106,7 +103,6 @@
     }
   }
 
-  // Group messages by date for separators
   function getMessageDate(timestamp: string): string {
     const date = new Date(timestamp);
     const today = new Date();
@@ -122,7 +118,6 @@
     }
   }
 
-  // Determine if a separator should be shown before a message
   function shouldShowSeparator(index: number): string | null {
     if (index === 0) return getMessageDate(messages[index].timestamp);
     const currentDate = getMessageDate(messages[index].timestamp);
@@ -130,15 +125,8 @@
     return currentDate !== previousDate ? currentDate : null;
   }
 
-  // Format timestamp for display
   function formatTimestamp(timestamp: string): string {
-    return timestamp;
-    // const date = new Date(timestamp);
-    // if (isNaN(date.getTime())) {
-    // 	console.error('Invalid timestamp:', timestamp);
-    // 	return 'Time unavailable'; // Fallback text
-    // }
-    // return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return timestamp; // Customize as needed
   }
 </script>
 
@@ -179,25 +167,24 @@
                 />
               {/if}
               <div
-                class="card rounded-container flex items-center gap-2 p-4 text-xs {message.source ===
-								MessageSource.USER
-									? 'preset-filled-primary-500 text-surface-100'
-									: 'bg-surface-100-900 text-surface-900 dark:text-surface-100'}"
+                class="card rounded-container flex items-center gap-2 p-4 text-xs {message.source === MessageSource.USER
+                  ? 'preset-filled-primary-500 text-surface-100'
+                  : 'bg-surface-100-900 text-surface-900 dark:text-surface-100'}"
                 role="article"
                 aria-label="{message.source === MessageSource.USER
-									? 'You'
-									: 'Bot'} said at {formatTimestamp(message.timestamp)}"
+                  ? 'You'
+                  : 'Bot'} said at {formatTimestamp(message.timestamp)}"
               >
-                <p>{message.text}</p>
+                <MarkdownRenderer content={message.text} />
                 <small
-                  class="mt-1 text-xs opacity-0 transition-opacity duration-200 group-hover:opacity-60"
+                  class="mt-1 text-xs opacity-0 transition-opacity duration-200 group-hover:opacity-60 text-surface-400"
                 >
                   {formatTimestamp(message.timestamp)}
                 </small>
                 {#if message.source === MessageSource.USER}
                   <button
                     onclick={() => openDeleteModal(message.id)}
-                    class="hover:bg-surface-200-800 text-surface-500 rounded-full p-1 transition-colors duration-200 hover:text-red-500"
+                    class="hover:bg-surface-200-800 text-surface-500 rounded-full p-1 transition-colors duration-200 hover:text-error-500"
                     aria-label="Delete this message"
                   >
                     <IconTrash size={16} class="shrink-0" />
@@ -252,61 +239,53 @@
       <div
         class="border-surface-200-800 focus-within:border-primary-500 overflow-hidden rounded border transition-all duration-200"
       >
-				<textarea
+        <textarea
           bind:value={inputText}
           bind:this={textareaRef}
           onkeydown={handleKeydown}
           oninput={adjustTextareaHeight}
           placeholder="Compose message..."
           rows="3"
-          class="input bg-surface-100-900 text-surface-900 dark:text-surface-100 placeholder:text-surface-400 textarea-scrollbar w-full
-                 resize-none border-none
-                 pr-6 text-xs transition-all
-                 duration-200 focus:ring-0"
-          style="min-height: 1.5em; max-height: 7.5em; overflow-y: auto; box-sizing: border-box;"
+          class="input textarea-scrollbar w-full resize-none border-none bg-surface-100-900 text-surface-900 dark:text-surface-100 placeholder:text-surface-400 text-xs transition-all duration-200 focus:ring-0 pr-6"
           aria-label="Message input"
-        ></textarea>
+        >
+        </textarea>
       </div>
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
-					<span class="text-surface-400 text-xs" aria-live="polite">
-						{messages.length}
-            {messages.length === 1 ? 'message' : 'messages'}
-					</span>
           <span class="text-surface-400 text-xs" aria-live="polite">
-						{inputText.length}/{MAX_CHARACTERS}
-					</span>
+            {messages.length}
+            {messages.length === 1 ? 'message' : 'messages'}
+          </span>
+          <span class="text-surface-400 text-xs" aria-live="polite">
+            {inputText.length}/{MAX_CHARACTERS}
+          </span>
         </div>
         <div class="flex gap-2">
           <button
             onclick={clearChat}
-            class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full
-                   p-2 shadow-sm transition-colors duration-200"
+            class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full p-2 shadow-sm transition-colors duration-200"
             aria-label="Clear chat"
           >
             <IconTrash size={16} class="shrink-0" />
           </button>
           <button
             onclick={handleVoice}
-            class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full
-                   p-2 shadow-sm transition-colors duration-200"
+            class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full p-2 shadow-sm transition-colors duration-200"
             aria-label="Record voice message"
           >
             <IconMic size={16} class="shrink-0" />
           </button>
           <button
             onclick={handleAttach}
-            class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full
-                   p-2 shadow-sm transition-colors duration-200"
+            class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full p-2 shadow-sm transition-colors duration-200"
             aria-label="Attach file"
           >
             <IconPaperclip size={16} class="shrink-0" />
           </button>
           <button
             onclick={sendMessage}
-            class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full
-                   p-2 shadow-sm transition-colors duration-200
-                   disabled:pointer-events-none disabled:opacity-50"
+            class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full p-2 shadow-sm transition-colors duration-200 disabled:pointer-events-none disabled:opacity-50"
             disabled={inputText.trim() === '' || inputText.length > MAX_CHARACTERS}
             aria-label="Send message"
           >
@@ -317,7 +296,6 @@
     </div>
   </footer>
 
-  <!-- Confirmation Modal -->
   <ConfirmationModal
     open={showModal}
     onConfirm={confirmDelete}
@@ -330,5 +308,8 @@
 <style>
   .input {
     box-sizing: border-box;
+    min-height: 1.5em;
+    max-height: 7.5em;
+    overflow-y: auto;
   }
 </style>

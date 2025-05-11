@@ -1,3 +1,8 @@
+/**
+ * Processes markdown content into HTML using unified, remark, and rehype plugins.
+ * @param markdown - The markdown string to process.
+ * @returns A promise resolving to the processed HTML string.
+ */
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
@@ -5,7 +10,6 @@ import remarkRehype from 'remark-rehype';
 import rehypeSanitize from 'rehype-sanitize';
 import rehypeStringify from 'rehype-stringify';
 import rehypeHighlight from 'rehype-highlight';
-import type { VFile } from 'vfile';
 
 export async function processMarkdown(markdown: string): Promise<string> {
 	try {
@@ -13,7 +17,7 @@ export async function processMarkdown(markdown: string): Promise<string> {
 			.use(remarkParse)
 			.use(remarkGfm)
 			.use(remarkRehype)
-			.use(rehypeHighlight, { detect: true })
+			.use(rehypeHighlight)
 			.use(rehypeSanitize)
 			.use(rehypeStringify);
 
@@ -21,6 +25,6 @@ export async function processMarkdown(markdown: string): Promise<string> {
 		return result.toString();
 	} catch (error) {
 		console.error('Markdown processing error:', error);
-		return markdown; // Fallback to raw text
+		return markdown;
 	}
 }

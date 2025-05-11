@@ -1,139 +1,176 @@
 <script lang="ts">
-  import { processMarkdown } from '$lib/utils/markdown';
-  // Static imports for highlight.js themes
-  import 'highlight.js/styles/github.css';
-  import 'highlight.js/styles/atom-one-dark.css';
+	import { marked } from 'marked';
+	import hljs from 'highlight.js';
+	import 'highlight.js/styles/atom-one-dark.css'; // Use a dark theme as base
 
-  export let content: string = '';
-  export let preRenderedHtml: string | null = null;
+	// Configure marked with highlight.js
+	marked.setOptions({
+		gfm: true,
+		breaks: true,
+		highlight: (code, lang) => {
+			if (lang && hljs.getLanguage(lang)) {
+				return hljs.highlight(code, { language: lang }).value;
+			}
+			return hljs.highlightAuto(code).value;
+		},
+	});
 
-  let htmlPromise: Promise<string> | string = preRenderedHtml || processMarkdown(content);
+	// Define props using $props
+	let { content = '' } = $props<{ content: string }>();
 
-  // Debug content, preRenderedHtml, and htmlPromise
-  $: console.log('MarkdownRenderer: content=', content, 'preRenderedHtml=', preRenderedHtml, 'htmlPromise=', htmlPromise);
-
-  $: htmlPromise = preRenderedHtml || processMarkdown(content);
+	// Use $derived for reactive computation
+	let htmlContent = $derived(marked(content || ''));
 </script>
 
-{#if typeof htmlPromise === 'string' && htmlPromise}
-  <div class="markdown-content">{@html htmlPromise}</div>
-{:else if typeof htmlPromise === 'string' && !htmlPromise}
-  <p class="error">Empty HTML content</p>
-  <p>{content}</p>
-{:else}
-  {#await htmlPromise}
-    <!-- Render nothing while loading -->
-  {:then html}
-    {#if html}
-      <div class="markdown-content">{@html html}</div>
-    {:else}
-      <p class="error">Empty HTML content</p>
-      <p>{content}</p>
-    {/if}
-  {:catch error}
-    <p class="error">{error.message || 'Failed to render content'}</p>
-    <p>{content}</p>
-  {/await}
-{/if}
+<div class="prose markdown-content text-surface-900 dark:text-surface-100">
+	{@html htmlContent}
+</div>
 
 <style>
-  /* Default to github.css (light mode) */
-  .markdown-content :global(.hljs) {
-    background: #e5e7eb; /* surface-100 */
-  }
-  .markdown-content :global(pre) {
-    background: #e5e7eb; /* surface-100 */
-    padding: 1rem;
-    border-radius: 0.375rem;
-    overflow-x: auto;
-  }
-  /* Hide atom-one-dark by default */
-  .markdown-content :global(.hljs-atom-one-dark) {
-    display: none;
-  }
+    .prose {
+        max-width: 65ch;
+        line-height: 1.6;
+    }
 
-  /* Dark mode: use atom-one-dark.css */
-  :where([data-theme='dark']) .markdown-content :global(.hljs) {
-    display: none;
-  }
-  :where([data-theme='dark']) .markdown-content :global(.hljs-atom-one-dark) {
-    display: block;
-    background: #111827; /* surface-900 */
-  }
-  :where([data-theme='dark']) .markdown-content :global(pre) {
-    background: #111827; /* surface-900 */
-  }
+    /* Code block background and border */
+    .markdown-content :global(pre) {
+        background-color: var(--color-surface-800-100);
+        border: 1px solid var(--color-surface-200-800);
+        border-radius: 0.375rem;
+        padding: 1rem;
+        overflow-x: auto;
+    }
 
-  .markdown-content :global(p) {
-    margin: 0;
-  }
-  .markdown-content :global(ul),
-  .markdown-content :global(ol) {
-    margin: 0.5rem 0;
-    padding-left: 1.5rem;
-  }
-  .markdown-content :global(li) {
-    margin: 0.25rem 0;
-  }
-  .markdown-content :global(a) {
-    color: #3b82f6;
-    text-decoration: underline;
-  }
-  .markdown-content :global(a:hover) {
-    color: #2563eb;
-  }
-  .markdown-content :global(strong) {
-    font-weight: bold;
-  }
-  .markdown-content :global(em) {
-    font-style: italic;
-  }
-  .markdown-content :global(code) {
-    font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 0.875rem;
-  }
-  .markdown-content :global(table) {
-    border-collapse: collapse;
-    width: 100%;
-    margin: 0.5rem 0;
-  }
-  .markdown-content :global(th),
-  .markdown-content :global(td) {
-    border: 1px solid #d1d5db; /* surface-200 */
-    padding: 0.5rem;
-  }
-  .markdown-content :global(th) {
-    background: #d1d5db; /* surface-200 */
-    font-weight: 600;
-  }
-  .markdown-content :global(.task-list-item) {
-    list-style: none;
-  }
-  .markdown-content :global(.task-list-item input) {
-    margin-right: 0.5rem;
-  }
-  .markdown-content :global(del) {
-    text-decoration: line-through;
-  }
-  .error {
-    color: #ef4444; /* error-500 */
-  }
+    /* Code text */
+    .markdown-content :global(code) {
+        font-family: var(--base-font-family);
+        color: var(--color-surface-100-800);
+    }
 
-  /* Dark mode styles */
-  :where([data-theme='dark']) .markdown-content :global(a) {
-    color: #60a5fa; /* blue-400 */
-  }
-  :where([data-theme='dark']) .markdown-content :global(a:hover) {
-    color: #93c5fd; /* blue-300 */
-  }
-  :where([data-theme='dark']) .markdown-content :global(th),
-  :where([data-theme='dark']) .markdown-content :global(td) {
-    border-color: #374151; /* surface-700 */
-  }
-  :where([data-theme='dark']) .markdown-content :global(th) {
-    background: #1f2937; /* surface-800 */
-  }
-  :where([data-theme='dark']) .error {
-    color: #f87171; /* red-400 */
-  }
+    /* Dark mode adjustments for code text */
+    :where([data-theme='dark']) .markdown-content :global(code) {
+        color: var(--color-surface-100);
+        background-color: var(--color-surface-900);
+    }
+
+    /* Links */
+    .markdown-content :global(a) {
+        color: var(--color-primary-500);
+        transition: color 0.2s ease;
+    }
+
+    .markdown-content :global(a:hover) {
+        color: var(--color-primary-600);
+    }
+
+    /* Ensure all text elements inherit the root color */
+    .markdown-content :global(p),
+    .markdown-content :global(h1),
+    .markdown-content :global(h2),
+    .markdown-content :global(h3),
+    .markdown-content :global(h4),
+    .markdown-content :global(h5),
+    .markdown-content :global(h6),
+    .markdown-content :global(ul),
+    .markdown-content :global(ol),
+    .markdown-content :global(li) {
+        color: inherit;
+    }
+
+    /* Highlight.js styles */
+    .markdown-content :global(.hljs) {
+        background: transparent;
+        color: var(--color-surface-900) !important;
+    }
+
+    /* Override all highlight.js classes for consistent text color */
+    .markdown-content :global(.hljs-comment),
+    .markdown-content :global(.hljs-quote),
+    .markdown-content :global(.hljs-variable),
+    .markdown-content :global(.hljs-template-variable),
+    .markdown-content :global(.hljs-tag),
+    .markdown-content :global(.hljs-name),
+    .markdown-content :global(.hljs-selector-id),
+    .markdown-content :global(.hljs-selector-class),
+    .markdown-content :global(.hljs-regexp),
+    .markdown-content :global(.hljs-deletion),
+    .markdown-content :global(.hljs-number),
+    .markdown-content :global(.hljs-built_in),
+    .markdown-content :global(.hljs-literal),
+    .markdown-content :global(.hljs-type),
+    .markdown-content :global(.hljs-params),
+    .markdown-content :global(.hljs-meta),
+    .markdown-content :global(.hljs-link),
+    .markdown-content :global(.hljs-attribute),
+    .markdown-content :global(.hljs-string),
+    .markdown-content :global(.hljs-symbol),
+    .markdown-content :global(.hljs-bullet),
+    .markdown-content :global(.hljs-addition),
+    .markdown-content :global(.hljs-title),
+    .markdown-content :global(.hljs-section),
+    .markdown-content :global(.hljs-keyword),
+    .markdown-content :global(.hljs-selector-tag) {
+        color: var(--color-surface-900) !important;
+    }
+
+    /* Dark mode adjustments for highlight.js */
+    :where([data-theme='dark']) .markdown-content :global(.hljs) {
+        color: var(--color-surface-100) !important;
+    }
+
+    :where([data-theme='dark']) .markdown-content :global(.hljs-comment),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-quote),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-variable),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-template-variable),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-tag),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-name),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-selector-id),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-selector-class),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-regexp),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-deletion),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-number),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-built_in),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-literal),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-type),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-params),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-meta),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-link),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-attribute),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-string),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-symbol),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-bullet),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-addition),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-title),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-section),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-keyword),
+    :where([data-theme='dark']) .markdown-content :global(.hljs-selector-tag) {
+        color: var(--color-surface-100) !important;
+    }
+
+    /* Scrollbar styles */
+    .markdown-content :global(pre::-webkit-scrollbar) {
+        height: 6px;
+    }
+
+    .markdown-content :global(pre::-webkit-scrollbar-track) {
+        background: var(--color-surface-100-900);
+        border-radius: 4px;
+        border: 1px solid transparent;
+    }
+
+    .markdown-content :global(pre::-webkit-scrollbar-thumb) {
+        background: var(--color-primary-500);
+        border-radius: 4px;
+        box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.3);
+        opacity: 0.3;
+        border: 1px solid var(--color-surface-200-800);
+        transition: background 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease;
+    }
+
+    .markdown-content :global(pre::-webkit-scrollbar-thumb:hover) {
+        background: var(--color-primary-600);
+        box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.4);
+        opacity: 1;
+        border-color: var(--color-primary-600);
+    }
 </style>
