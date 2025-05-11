@@ -20,7 +20,7 @@
   let messageToDelete = $state<string | null>(null);
   let typing = $state(false);
 
-  const MAX_CHARACTERS = 500;
+  const MAX_CHARACTERS = 4000;
 
   $effect(() => {
     wsStore.connect();
@@ -183,7 +183,7 @@
                 </small>
                 {#if message.source === MessageSource.USER}
                   <button
-                    onclick={() => openDeleteModal(message.id)}
+                    onclick={() => openDeleteModal(message.id.toString())}
                     class="hover:bg-surface-200-800 text-surface-500 rounded-full p-1 transition-colors duration-200 hover:text-error-500"
                     aria-label="Delete this message"
                   >

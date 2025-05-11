@@ -13,9 +13,9 @@
 @source '../node_modules/@skeletonlabs/skeleton-svelte/dist';
 
 :root {
-	--base-font-family: 'Consolas', 'Menlo', 'Monaco', 'monospace';
-	--heading-font-family: 'Consolas', 'Menlo', 'Monaco', 'monospace';
-	--anchor-font-family: 'Consolas', 'Menlo', 'Monaco', 'monospace';
+	--base-font-family: 'Poppins', sans-serif;
+	--heading-font-family: 'Poppins', sans-serif;
+	--anchor-font-family: 'Poppins', sans-serif;
 }
 /* src/app.css */
 

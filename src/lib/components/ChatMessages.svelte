@@ -87,28 +87,29 @@
           {/if}
 
           <div
-            class="card rounded-container flex items-center gap-2 p-4 text-xs
-              {message.from === MessageSource.USER
-                ? 'preset-filled-primary-500 text-surface-100'
-                : 'bg-surface-100-900 text-surface-900 dark:text-surface-100'}"
+            class="card rounded-container flex flex-col p-4 text-xs preset-filled-secondary-500 text-surface-900"
             role="article"
             aria-label="{message.from === MessageSource.USER ? 'You' : 'Bot'} said at {formatTimestamp(message.ts)}"
           >
-            <MarkdownRenderer content={message.message || ''} />
-            <small
-              class="mt-1 text-xs opacity-0 transition-opacity duration-200 group-hover:opacity-60"
-            >
-              {formatTimestamp(message.ts)}
-            </small>
-            {#if message.from === MessageSource.USER}
-              <button
-                on:click={() => handleDeleteClick(message.id)}
-                class="hover:bg-surface-200-800 text-surface-500 rounded-full p-1 transition-colors duration-200 hover:text-red-500"
-                aria-label="Delete this message"
+            <div class="flex-1">
+              <MarkdownRenderer content={message.message || ''} />
+            </div>
+            <div class="flex items-center justify-between mt-1">
+              <small
+                class="text-xs opacity-0 transition-opacity duration-200 group-hover:opacity-60 text-surface-400"
               >
-                <IconTrash size={16} class="shrink-0" />
-              </button>
-            {/if}
+                {formatTimestamp(message.ts)}
+              </small>
+              {#if message.from === MessageSource.USER}
+                <button
+                  on:click={() => handleDeleteClick(message.id)}
+                  class="hover:bg-surface-200-800 text-surface-500 rounded-full p-1 transition-colors duration-200 hover:text-error-500"
+                  aria-label="Delete this message"
+                >
+                  <IconTrash size={16} class="shrink-0" />
+                </button>
+              {/if}
+            </div>
           </div>
 
           {#if message.from === MessageSource.USER}
@@ -135,7 +136,7 @@
             background="bg-surface-200-800"
           />
           <div
-            class="card rounded-container bg-surface-100-900 text-surface-900 dark:text-surface-100 p-4 text-xs"
+            class="card rounded-container preset-filled-secondary-500 text-surface-900 p-4 text-xs"
             role="status"
             aria-label="Bot is typing"
           >

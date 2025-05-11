@@ -19,11 +19,16 @@
   export let inputText: string = '';
   export let maxCharacters: number = 500;
   export let messagesCount: number = 0;
-  export let onInputTextChange: (value: string) => void = () => {};
-  export let onSend: () => void = () => {};
-  export let onClear: () => void = () => {};
-  export let onVoice: () => void = () => {};
-  export let onAttach: () => void = () => {};
+  export let onInputTextChange: (value: string) => void = () => {
+  };
+  export let onSend: () => void = () => {
+  };
+  export let onClear: () => void = () => {
+  };
+  export let onVoice: () => void = () => {
+  };
+  export let onAttach: () => void = () => {
+  };
 
   let textareaRef: HTMLTextAreaElement | undefined;
 
@@ -55,7 +60,7 @@
 <footer class="p-4">
   <div class="mx-auto max-w-3xl space-y-3">
     <div
-      class="border-surface-200-800 focus-within:border-primary-500 overflow-hidden rounded border transition-all duration-200"
+      class="border-surface-200-800 focus-within:border-primary-500 rounded border overflow-hidden transition-all duration-200"
     >
       <textarea
         bind:this={textareaRef}
@@ -63,53 +68,45 @@
         on:keydown={handleKeydown}
         rows="3"
         placeholder="Compose message..."
-        class="input bg-surface-100-900 text-surface-900 dark:text-surface-100 placeholder:text-surface-400 textarea-scrollbar
-               w-full resize-none border-none pr-6 text-xs
-               transition-all duration-200 focus:ring-0"
-        style="min-height: 1.5em; max-height: 7.5em; overflow-y: auto; box-sizing: border-box;"
+        class="input textarea-scrollbar w-full resize-none border-none bg-surface-100-900 text-surface-100 placeholder:text-surface-400 text-sm pr-6 transition-all duration-200 focus:ring-0"
         aria-label="Message input"
       >{inputText}</textarea>
     </div>
 
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-2">
-        <span class="text-surface-400 text-xs" aria-live="polite">
+        <span class="text-surface-400 text-sm" aria-live="polite">
           {messagesCount} {messagesCount === 1 ? 'message' : 'messages'}
         </span>
-        <span class="text-surface-400 text-xs" aria-live="polite">
+        <span class="text-surface-400 text-sm" aria-live="polite">
           {inputText.length}/{maxCharacters}
         </span>
       </div>
       <div class="flex gap-2">
         <button
           on:click={onClear}
-          class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full
-                 p-2 shadow-sm transition-colors duration-200"
+          class="btn-secondary"
           aria-label="Clear chat"
         >
           <IconTrash size={16} class="shrink-0" />
         </button>
         <button
           on:click={onVoice}
-          class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full
-                 p-2 shadow-sm transition-colors duration-200"
+          class="btn-secondary"
           aria-label="Record voice message"
         >
           <IconMic size={16} class="shrink-0" />
         </button>
         <button
           on:click={onAttach}
-          class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full
-                 p-2 shadow-sm transition-colors duration-200"
+          class="btn-secondary"
           aria-label="Attach file"
         >
           <IconPaperclip size={16} class="shrink-0" />
         </button>
         <button
           on:click={onSend}
-          class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full
-                 p-2 shadow-sm transition-colors duration-200
-                 disabled:pointer-events-none disabled:opacity-50"
+          class="btn-secondary disabled:pointer-events-none disabled:opacity-50"
           disabled={inputText.trim() === '' || inputText.length > maxCharacters}
           aria-label="Send message"
         >
@@ -123,5 +120,12 @@
 <style>
   .input {
     box-sizing: border-box;
+    min-height: 1.5em;
+    max-height: 7.5em;
+    overflow-y: auto;
+  }
+
+  .btn-secondary {
+    @apply preset-filled-secondary-500 text-surface-900 rounded-full p-2 shadow-sm transition-colors duration-200;
   }
 </style>
