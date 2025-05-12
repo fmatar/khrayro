@@ -1,11 +1,8 @@
 <script lang="ts">
   import { Avatar } from '@skeletonlabs/skeleton-svelte';
-  import IconSend from '@lucide/svelte/icons/send';
-  import IconTrash from '@lucide/svelte/icons/trash-2';
-  import IconMic from '@lucide/svelte/icons/mic';
-  import IconPaperclip from '@lucide/svelte/icons/paperclip';
   import ConfirmationModal from '$lib/components/ConfirmationModal.svelte';
   import MarkdownRenderer from '$lib/components/MarkdownRenderer.svelte';
+  import ChatInput from '$lib/components/ChatInput.svelte';
   import { createWebSocketStore } from '$lib/stores/websocket';
   import { MessageSource } from '$lib/types/messageSource';
   import type { Message } from '$lib/types/message';
@@ -14,7 +11,6 @@
   let messages = $state<Message[]>([]);
   let inputText = $state('');
   let chatContainer: HTMLElement;
-  let textareaRef: HTMLTextAreaElement;
   let username = $state('user');
   let showModal = $state(false);
   let messageToDelete = $state<string | null>(null);
@@ -37,7 +33,6 @@
     if (inputText.trim() === '' || inputText.length > MAX_CHARACTERS) return;
     wsStore.send(inputText.trim());
     inputText = '';
-    textareaRef?.focus();
     scrollToBottom();
   }
 
@@ -75,7 +70,6 @@
     wsStore.sendClearChat();
     messages = [];
     typing = false;
-    textareaRef?.focus();
   }
 
   function handleVoice() {
@@ -84,23 +78,6 @@
 
   function handleAttach() {
     console.log('Attach button clicked');
-  }
-
-  function handleKeydown(event: KeyboardEvent) {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      sendMessage();
-    }
-  }
-
-  function adjustTextareaHeight() {
-    if (textareaRef) {
-      textareaRef.style.height = 'auto';
-      const scrollHeight = textareaRef.scrollHeight;
-      const lineHeight = parseFloat(getComputedStyle(textareaRef).lineHeight);
-      const maxHeight = lineHeight * 5;
-      textareaRef.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
-    }
   }
 
   function getMessageDate(timestamp: string): string {
@@ -126,7 +103,7 @@
   }
 
   function formatTimestamp(timestamp: string): string {
-    return timestamp; // Customize as needed
+    return timestamp;
   }
 </script>
 
@@ -183,7 +160,7 @@
                 </small>
                 {#if message.source === MessageSource.USER}
                   <button
-                    onclick={() => openDeleteModal(message.id.toString())}
+                    on:click={() => openDeleteModal(message.id.toString())}
                     class="hover:bg-surface-200-800 text-surface-500 rounded-full p-1 transition-colors duration-200 hover:text-error-500"
                     aria-label="Delete this message"
                   >
@@ -233,68 +210,15 @@
     </section>
   </div>
 
-  <!-- Control Panel -->
-  <footer class="p-4">
-    <div class="mx-auto max-w-3xl space-y-3">
-      <div
-        class="border-surface-200-800 focus-within:border-primary-500 overflow-hidden rounded border transition-all duration-200"
-      >
-        <textarea
-          bind:value={inputText}
-          bind:this={textareaRef}
-          onkeydown={handleKeydown}
-          oninput={adjustTextareaHeight}
-          placeholder="Compose message..."
-          rows="3"
-          class="input textarea-scrollbar w-full resize-none border-none bg-surface-100-900 text-surface-900 dark:text-surface-100 placeholder:text-surface-400 text-xs transition-all duration-200 focus:ring-0 pr-6"
-          aria-label="Message input"
-        >
-        </textarea>
-      </div>
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <span class="text-surface-400 text-xs" aria-live="polite">
-            {messages.length}
-            {messages.length === 1 ? 'message' : 'messages'}
-          </span>
-          <span class="text-surface-400 text-xs" aria-live="polite">
-            {inputText.length}/{MAX_CHARACTERS}
-          </span>
-        </div>
-        <div class="flex gap-2">
-          <button
-            onclick={clearChat}
-            class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full p-2 shadow-sm transition-colors duration-200"
-            aria-label="Clear chat"
-          >
-            <IconTrash size={16} class="shrink-0" />
-          </button>
-          <button
-            onclick={handleVoice}
-            class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full p-2 shadow-sm transition-colors duration-200"
-            aria-label="Record voice message"
-          >
-            <IconMic size={16} class="shrink-0" />
-          </button>
-          <button
-            onclick={handleAttach}
-            class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full p-2 shadow-sm transition-colors duration-200"
-            aria-label="Attach file"
-          >
-            <IconPaperclip size={16} class="shrink-0" />
-          </button>
-          <button
-            onclick={sendMessage}
-            class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full p-2 shadow-sm transition-colors duration-200 disabled:pointer-events-none disabled:opacity-50"
-            disabled={inputText.trim() === '' || inputText.length > MAX_CHARACTERS}
-            aria-label="Send message"
-          >
-            <IconSend size={16} class="shrink-0" />
-          </button>
-        </div>
-      </div>
-    </div>
-  </footer>
+  <ChatInput
+    bind:inputText
+    maxCharacters={MAX_CHARACTERS}
+    messagesCount={messages.length}
+    onSend={sendMessage}
+    onClear={clearChat}
+    onVoice={handleVoice}
+    onAttach={handleAttach}
+  />
 
   <ConfirmationModal
     open={showModal}
@@ -304,12 +228,3 @@
     message="Are you sure you want to delete this message?"
   />
 </div>
-
-<style>
-  .input {
-    box-sizing: border-box;
-    min-height: 1.5em;
-    max-height: 7.5em;
-    overflow-y: auto;
-  }
-</style>
