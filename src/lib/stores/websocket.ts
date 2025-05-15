@@ -18,10 +18,7 @@ export function createWebSocketStore(username: string) {
   });
 
   function connect() {
-    if (!token) {
-      console.error('No authentication token available');
-      return;
-    }
+
 
     // Append the token as a query parameter to the WebSocket URL
     const wsUrl = `${WS_URL}/${username}`;

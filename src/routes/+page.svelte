@@ -164,7 +164,7 @@
                     class="hover:bg-surface-200-800 text-surface-500 rounded-full p-1 transition-colors duration-200 hover:text-error-500"
                     aria-label="Delete this message"
                   >
-                    <IconTrash size={16} class="shrink-0" />
+                    X
                   </button>
                 {/if}
               </div>
