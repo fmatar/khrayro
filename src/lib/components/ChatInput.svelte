@@ -7,11 +7,14 @@
   export let inputText: string = '';
   export let maxCharacters: number = 4000;
   export let messagesCount: number = 0;
-  export let onInputTextChange: (value: string) => void = () => {};
-  export let onSend: () => void = () => {};
-  export let onClear: () => void = () => {};
-  export let onVoice: () => void = () => {};
-  export let onAttach: () => void = () => {};
+  export let onSend: () => void = () => {
+  };
+  export let onClear: () => void = () => {
+  };
+  export let onVoice: () => void = () => {
+  };
+  export let onAttach: () => void = () => {
+  };
 
   let textareaRef: HTMLTextAreaElement;
 
@@ -44,9 +47,11 @@
         on:input={adjustTextareaHeight}
         placeholder="Compose message..."
         rows="3"
-        class="input textarea-scrollbar w-full resize-none border-none bg-surface-100-900 text-surface-900 dark:text-surface-100 placeholder:text-surface-400 text-xs transition-all duration-200 focus:ring-0 pr-6"
+        class="input textarea-scrollbar w-full resize-none border-none bg-surface-100-900 text-surface-900 dark:text-surface-100 placeholder:text-surface-400 text-sm transition-all duration-200 focus:ring-0 pr-6"
         aria-label="Message input"
-      />
+      >
+
+      </textarea>
     </div>
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-2">

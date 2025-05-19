@@ -3,6 +3,7 @@
   import MarkdownRenderer from '$lib/components/MarkdownRenderer.svelte';
   import type { Message } from '$lib/types/message';
   import { MessageSource } from '$lib/types/messageSource';
+  import IconTrash from '@lucide/svelte/icons/trash-2';
 
   export let messages: Message[];
   export let typing: boolean;
@@ -51,7 +52,7 @@
       {#if needSeparator(messages, i)}
         <div class="my-4 flex items-center">
           <div class="bg-surface-200-800 h-px flex-1"></div>
-          <span class="text-surface-400 px-4 text-xs">{getDateLabel(msg.timestamp)}</span>
+          <span class="text-surface-400 px-4 text-xs">{msg.timestamp}</span>
           <div class="bg-surface-200-800 h-px flex-1"></div>
         </div>
       {/if}
@@ -77,9 +78,9 @@
               <button
                 class="hover:bg-surface-200-800 text-surface-500 rounded-full p-1 transition-colors duration-200 hover:text-error-500"
                 aria-label="Delete this message"
-                on:click={() => openDeleteModal(msg.id)}
+                onclick={() => openDeleteModal(msg.id)}
               >
-                ✕
+                <IconTrash size={16} class="shrink-0" />
               </button>
             {/if}
           </div>
@@ -100,9 +101,9 @@
                role="status" aria-label="Bot is typing">
             <p class="italic">Bot is typing...</p>
             <div class="flex gap-1">
-              <span class="bg-primary-500 inline-block h-2 w-2 rounded-full" />
-              <span class="bg-primary-500 inline-block h-2 w-2 rounded-full" />
-              <span class="bg-primary-500 inline-block h-2 w-2 rounded-full" />
+              <span class="bg-primary-500 inline-block h-2 w-2 rounded-full" ></span>
+              <span class="bg-primary-500 inline-block h-2 w-2 rounded-full" ></span>
+              <span class="bg-primary-500 inline-block h-2 w-2 rounded-full" ></span>
             </div>
           </div>
         </div>
