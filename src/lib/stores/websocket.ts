@@ -38,8 +38,9 @@ export function createWebSocketStore(username: string) {
 
 		state.set(ConnectionState.CONNECTING);
 
-		const url = `${WS_URL}/${encodeURIComponent(username)}`; // TODO add token query if backend supports
+		const url = `${WS_URL}/${encodeURIComponent(username)}?token=${token}`; // TODO add token query if backend supports
 
+		console.log('Connecting to WebSocket', url);
 		try {
 			ws = new WebSocket(url);
 		} catch (e) {
@@ -88,7 +89,10 @@ export function createWebSocketStore(username: string) {
 							source: data.from,
 							text: data.message,
 							type: data.type,
-							timestamp: new Date(data.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+							timestamp: new Date(data.ts).toLocaleTimeString([], {
+								hour: '2-digit',
+								minute: '2-digit'
+							})
 						}
 					]);
 			}
