@@ -16,6 +16,8 @@ export enum ConnectionState {
 const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8080/chat';
 
 export function createWebSocketStore(username: string) {
+	const typing = writable(false);
+
 	// ------------------ primary message store ----------------------------------
 	const messages = writable<Message[]>([]);
 	const { subscribe: messageSubscribe, update, set } = messages;
@@ -79,7 +81,9 @@ export function createWebSocketStore(username: string) {
 					update((msgs) => msgs.filter((msg) => msg.id !== data.message));
 					break;
 				case MessageType.TYPING:
-					// typing UI handled elsewhere
+					typing.set(true);
+					// automatically clear the flag after 3 s so the UI hides itself
+					setTimeout(() => typing.set(false), 3000);
 					break;
 				default:
 					update((msgs) => [
@@ -201,10 +205,9 @@ export function createWebSocketStore(username: string) {
 	return {
 		// message list behaves like a store itself
 		subscribe,
-		// connection state + error for UI feedback
 		state,
 		error,
-		// control methods
+		typing,
 		connect,
 		send,
 		sendClearChat,

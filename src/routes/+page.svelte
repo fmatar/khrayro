@@ -7,17 +7,18 @@
   import ErrorDisplay from '$lib/components/ErrorDisplay.svelte';
   import { createWebSocketStore } from '$lib/stores/websocket';
 
-  export let username = 'user';
+  let username = 'user';
   const MAX_CHARACTERS = 4000;
 
+  // WebSocket store & derived helpers
   const ws = createWebSocketStore(username);
-  const { state: connState, error: connError } = ws;
+  const { state: connState, error: connError, typing } = ws;
   const messages = { subscribe: ws.subscribe };
 
+  // UI state
   let inputText = '';
   let showModal = false;
   let messageToDelete: string | null = null;
-  let typing = false; // TODO: wire when backend sends TYPING frames
 
   onMount(() => {
     ws.connect();
@@ -48,16 +49,22 @@
 
   function clearChat() {
     ws.sendClearChat();
-    typing = false;
   }
 </script>
 
 <div class="bg-surface-50-950 flex h-full flex-col">
   <ConnectionStatus connState={$connState} />
   <ErrorDisplay connError={$connError} />
+
   <div class="rounded-container flex-1 overflow-hidden">
-    <ChatFeed messages={$messages} typing={typing} username={username} openDeleteModal={openDeleteModal} />
+    <ChatFeed
+      messages={$messages}
+      typing={$typing}
+      username={username}
+      openDeleteModal={openDeleteModal}
+    />
   </div>
+
   <ChatInput
     bind:inputText
     maxCharacters={MAX_CHARACTERS}
@@ -67,6 +74,7 @@
     onVoice={() => console.log('Voice')}
     onAttach={() => console.log('Attach')}
   />
+
   <ConfirmationModal
     open={showModal}
     onConfirm={confirmDelete}
