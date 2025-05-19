@@ -8,7 +8,7 @@
   import { createWebSocketStore } from '$lib/stores/websocket';
 
   let username = 'user';
-  const MAX_CHARACTERS = 4000;
+  const MAX_CHARACTERS = 8000;
 
   // WebSocket store & derived helpers
   const ws = createWebSocketStore(username);

@@ -5,6 +5,8 @@
   import { MessageSource } from '$lib/types/messageSource';
   import IconTrash from '@lucide/svelte/icons/trash-2';
 
+  import { autoscroll } from '$lib/actions/autoscroll';
+
   export let messages: Message[];
   export let typing: boolean;
   export let username: string;
@@ -37,11 +39,11 @@
   }
 </script>
 
-<section
-  bind:this={chatContainer}
-  class="chat-feed-scrollbar h-full flex-1 space-y-4 overflow-y-auto p-4"
-  role="log"
-  aria-label="Chat conversation"
+<section use:autoscroll
+         bind:this={chatContainer}
+         class="chat-feed-scrollbar h-full flex-1 space-y-4 overflow-y-auto p-4"
+         role="log"
+         aria-label="Chat conversation"
 >
   {#if messages.length === 0 && !typing}
     <div class="text-surface-400 flex h-full items-center justify-center">
@@ -101,9 +103,9 @@
                role="status" aria-label="Bot is typing">
             <p class="italic">Bot is typing...</p>
             <div class="flex gap-1">
-              <span class="bg-primary-500 inline-block h-2 w-2 rounded-full" ></span>
-              <span class="bg-primary-500 inline-block h-2 w-2 rounded-full" ></span>
-              <span class="bg-primary-500 inline-block h-2 w-2 rounded-full" ></span>
+              <span class="bg-primary-500 inline-block h-2 w-2 rounded-full animate-pulse"></span>
+              <span class="bg-primary-500 inline-block h-2 w-2 rounded-full animate-pulse delay-75"></span>
+              <span class="bg-primary-500 inline-block h-2 w-2 rounded-full animate-pulse delay-150"></span>
             </div>
           </div>
         </div>

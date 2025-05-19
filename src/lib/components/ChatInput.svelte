@@ -5,7 +5,7 @@
   import IconPaperclip from '@lucide/svelte/icons/paperclip';
 
   export let inputText: string = '';
-  export let maxCharacters: number = 4000;
+  export let maxCharacters: number = 1000;
   export let messagesCount: number = 0;
   export let onSend: () => void = () => {
   };
