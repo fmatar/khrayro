@@ -147,9 +147,9 @@ export function createWebSocketStore(username: string) {
 
 		ws!.send(
 			JSON.stringify({
-				id: messageId,
+				// id: messageId,
 				type: MessageType.CHAT_MESSAGE,
-				from: MessageSource.USER,
+				from: 'USER',
 				message,
 				ts: iso
 			})
@@ -160,7 +160,7 @@ export function createWebSocketStore(username: string) {
 		if (!ensureOpen()) return;
 		ws!.send(
 			JSON.stringify({
-				id: crypto.randomUUID(),
+				// id: crypto.randomUUID(),
 				type: MessageType.CLEAR_CHAT,
 				from: MessageSource.USER,
 				message: '',
@@ -173,7 +173,7 @@ export function createWebSocketStore(username: string) {
 		if (!ensureOpen()) return;
 		ws!.send(
 			JSON.stringify({
-				id: crypto.randomUUID(),
+				// id: crypto.randomUUID(),
 				type: MessageType.DELETE_MESSAGE,
 				from: MessageSource.USER,
 				message: messageId,

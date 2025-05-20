@@ -12,7 +12,7 @@ export interface Message {
 
 export interface WebSocketMessage {
 	/** unique identifier supplied by the sender (uuid v4) */
-	id: string;
+	id?: string;
 	/** discriminant – ALWAYS use MessageType here */
 	type: MessageType;
 	/** origin of the message – user or agent */
