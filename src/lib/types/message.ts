@@ -2,7 +2,7 @@ import { MessageSource } from '$lib/types/messageSource';
 import type { MessageType } from '$lib/types/messageType';
 
 export interface Message {
-	id: string;
+	id?: string;
 	type: MessageType;
 	source: MessageSource;
 	text: string;

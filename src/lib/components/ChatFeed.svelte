@@ -4,15 +4,35 @@
   import type { Message } from '$lib/types/message';
   import { MessageSource } from '$lib/types/messageSource';
   import IconTrash from '@lucide/svelte/icons/trash-2';
-
   import { autoscroll } from '$lib/actions/autoscroll';
 
-  export let messages: Message[];
-  export let typing: boolean;
-  export let username: string;
-  export let openDeleteModal: (id: string) => void;
+  // Define props using $props() rune
+  const props = $props<{
+    messages: Message[];
+    typing: boolean;
+    username: string;
+    openDeleteModal: (id: string) => void;
+  }>();
 
   let chatContainer: HTMLElement | null = null;
+
+  // Derived rune for sorted messages
+  const sortedMessages = $derived(
+    props.messages.slice().sort((a, b) => {
+      const aTime = new Date(a.timestamp).getTime();
+      const bTime = new Date(b.timestamp).getTime();
+      // Log any invalid timestamps
+      if (isNaN(aTime)) console.warn(`Invalid timestamp for message ${a.id}: ${a.timestamp}`);
+      if (isNaN(bTime)) console.warn(`Invalid timestamp for message ${b.id}: ${b.timestamp}`);
+      return aTime - bTime;
+    })
+  );
+
+  // Log raw and sorted messages for debugging
+  $effect(() => {
+    console.log('Raw Messages:', props.messages.map(m => ({ id: m.id, timestamp: m.timestamp })));
+    console.log('Sorted Messages:', sortedMessages.map(m => ({ id: m.id, timestamp: m.timestamp })));
+  });
 
   function getDateLabel(ts: string) {
     const d = new Date(ts);
@@ -29,14 +49,15 @@
     return getDateLabel(list[i].timestamp) !== getDateLabel(list[i - 1].timestamp);
   }
 
-  $: {
-    if (chatContainer && messages.length) {
+  // Autoscroll logic using $effect
+  $effect(() => {
+    if (chatContainer && sortedMessages.length) {
       const isNearBottom = chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < 100;
       if (isNearBottom) {
         chatContainer.scrollTop = chatContainer.scrollHeight;
       }
     }
-  }
+  });
 </script>
 
 <section use:autoscroll
@@ -45,16 +66,16 @@
          role="log"
          aria-label="Chat conversation"
 >
-  {#if messages.length === 0 && !typing}
+  {#if sortedMessages.length === 0 && !props.typing}
     <div class="text-surface-400 flex h-full items-center justify-center">
       <p>No messages yet. Start chatting!</p>
     </div>
   {:else}
-    {#each messages as msg, i (msg.id)}
-      {#if needSeparator(messages, i)}
+    {#each sortedMessages as msg, i (msg.id)}
+      {#if needSeparator(sortedMessages, i)}
         <div class="my-4 flex items-center">
           <div class="bg-surface-200-800 h-px flex-1"></div>
-          <span class="text-surface-400 px-4 text-xs">{msg.timestamp}</span>
+          <span class="text-surface-400 px-4 text-xs">{getDateLabel(msg.timestamp)}</span>
           <div class="bg-surface-200-800 h-px flex-1"></div>
         </div>
       {/if}
@@ -80,21 +101,21 @@
               <button
                 class="hover:bg-surface-200-800 text-surface-500 rounded-full p-1 transition-colors duration-200 hover:text-error-500"
                 aria-label="Delete this message"
-                onclick={() => openDeleteModal(msg.id)}
+                onclick={() => props.openDeleteModal(msg.id)}
               >
                 <IconTrash size={16} class="shrink-0" />
               </button>
             {/if}
           </div>
           {#if msg.source === MessageSource.USER}
-            <Avatar src="https://i.pravatar.cc/150?img=48" name={username} size="size-8" rounded="rounded-full"
+            <Avatar src="https://i.pravatar.cc/150?img=48" name={props.username} size="size-8" rounded="rounded-full"
                     background="bg-surface-200-800" />
           {/if}
         </div>
       </div>
     {/each}
 
-    {#if typing}
+    {#if props.typing}
       <div class="flex justify-start">
         <div class="flex max-w-[70%] items-start gap-2">
           <Avatar src="https://i.pravatar.cc/150?img=3" name="Bot" size="size-8" rounded="rounded-full"

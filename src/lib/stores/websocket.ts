@@ -4,7 +4,6 @@ import { authStore } from '$lib/stores/authStore';
 import type { Message, WebSocketMessage } from '$lib/types/message';
 import { MessageType } from '$lib/types/messageType';
 
-// ----------------------------- connection lifecycle ----------------------------
 export enum ConnectionState {
 	CONNECTING = 'CONNECTING',
 	CONNECTED = 'CONNECTED',
@@ -12,41 +11,38 @@ export enum ConnectionState {
 	ERROR = 'ERROR'
 }
 
-// WebSocket URL (configure for production)
 const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8080/chat';
 
 export function createWebSocketStore(username: string) {
 	const typing = writable(false);
-
-	// ------------------ primary message store ----------------------------------
 	const messages = writable<Message[]>([]);
 	const { subscribe: messageSubscribe, update, set } = messages;
 
-	// ------------------ connection state + error stores -------------------------
 	const state: Writable<ConnectionState> = writable(ConnectionState.DISCONNECTED);
 	const error: Writable<string | null> = writable(null);
 
 	let ws: WebSocket | null = null;
 	let token: string | null = null;
 
-	// keep latest token
 	const unsubscribeAuth = authStore.subscribe((store) => (token = store?.token));
 
-	// ---------------------------------------------------------------------------
-	// Connect – sets state transitions and guards duplicate opens
-	// ---------------------------------------------------------------------------
+	function sortMessagesSafe(msgs: Message[]) {
+		return msgs
+			.filter((m) => !isNaN(new Date(m.timestamp).getTime()))
+			.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+	}
+
 	function connect() {
-		if (ws !== null) return; // already connected or in‑flight
+		if (ws !== null) return;
 
 		state.set(ConnectionState.CONNECTING);
 
-		const url = `${WS_URL}/${encodeURIComponent(username)}?token=${token}`; // TODO add token query if backend supports
+		const url = `${WS_URL}/${encodeURIComponent(username)}?token=${token}`;
 
-		console.log('Connecting to WebSocket', url);
 		try {
 			ws = new WebSocket(url);
 		} catch (e) {
-			console.error('WebSocket construction failed', e);
+			console.error('WebSocket error:', e);
 			error.set('Failed to create WebSocket.');
 			state.set(ConnectionState.ERROR);
 			ws = null;
@@ -54,7 +50,6 @@ export function createWebSocketStore(username: string) {
 		}
 
 		ws.onopen = () => {
-			console.info('WebSocket connected');
 			state.set(ConnectionState.CONNECTED);
 			error.set(null);
 		};
@@ -67,9 +62,9 @@ export function createWebSocketStore(username: string) {
 					source: m.from,
 					text: m.message,
 					type: m.type,
-					timestamp: new Date(m.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+					timestamp: m.ts
 				}));
-				set(history);
+				set(sortMessagesSafe(history));
 				return;
 			}
 
@@ -82,28 +77,23 @@ export function createWebSocketStore(username: string) {
 					break;
 				case MessageType.TYPING:
 					typing.set(true);
-					// automatically clear the flag after 3 s so the UI hides itself
 					setTimeout(() => typing.set(false), 3000);
 					break;
 				default:
-					update((msgs) => [
-						...msgs,
-						{
-							id: data.id,
+					update((msgs) => {
+						const newMessage: Message = {
+							id: data.id || crypto.randomUUID(),
 							source: data.from,
 							text: data.message,
 							type: data.type,
-							timestamp: new Date(data.ts).toLocaleTimeString([], {
-								hour: '2-digit',
-								minute: '2-digit'
-							})
-						}
-					]);
+							timestamp: data.ts
+						};
+						return sortMessagesSafe([...msgs, newMessage]);
+					});
 			}
 		};
 
 		ws.onclose = (ev) => {
-			console.warn('WebSocket closed', ev);
 			state.set(ConnectionState.DISCONNECTED);
 			if (ev.code !== 1000) {
 				error.set(`Connection closed unexpectedly (code ${ev.code})`);
@@ -118,9 +108,6 @@ export function createWebSocketStore(username: string) {
 		};
 	}
 
-	// ---------------------------------------------------------------------------
-	// Outbound helpers – respect connection state
-	// ---------------------------------------------------------------------------
 	function ensureOpen(): boolean {
 		if (!ws || ws.readyState !== WebSocket.OPEN) {
 			error.set('Socket not connected.');
@@ -134,22 +121,21 @@ export function createWebSocketStore(username: string) {
 		const messageId = crypto.randomUUID();
 		const iso = new Date().toISOString();
 
-		update((msgs) => [
-			...msgs,
-			{
+		update((msgs) => {
+			const newMessage: Message = {
 				id: messageId,
 				source: MessageSource.USER,
 				text: message,
 				type: MessageType.CHAT_MESSAGE,
-				timestamp: new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-			}
-		]);
+				timestamp: iso
+			};
+			return sortMessagesSafe([...msgs, newMessage]);
+		});
 
 		ws!.send(
 			JSON.stringify({
-				// id: messageId,
 				type: MessageType.CHAT_MESSAGE,
-				from: 'USER',
+				from: MessageSource.USER,
 				message,
 				ts: iso
 			})
@@ -160,7 +146,6 @@ export function createWebSocketStore(username: string) {
 		if (!ensureOpen()) return;
 		ws!.send(
 			JSON.stringify({
-				// id: crypto.randomUUID(),
 				type: MessageType.CLEAR_CHAT,
 				from: MessageSource.USER,
 				message: '',
@@ -173,7 +158,6 @@ export function createWebSocketStore(username: string) {
 		if (!ensureOpen()) return;
 		ws!.send(
 			JSON.stringify({
-				// id: crypto.randomUUID(),
 				type: MessageType.DELETE_MESSAGE,
 				from: MessageSource.USER,
 				message: messageId,
@@ -190,9 +174,6 @@ export function createWebSocketStore(username: string) {
 		}
 	}
 
-	// ---------------------------------------------------------------------------
-	// Wrapped subscribe cleans up when last listener unsubscribes.
-	// ---------------------------------------------------------------------------
 	function subscribe(run: (value: Message[]) => void, invalidate?: () => void) {
 		const unsubMessages = messageSubscribe(run, invalidate);
 		return () => {
@@ -203,7 +184,6 @@ export function createWebSocketStore(username: string) {
 	}
 
 	return {
-		// message list behaves like a store itself
 		subscribe,
 		state,
 		error,
