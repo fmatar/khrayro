@@ -15,8 +15,8 @@
 
   const marked = new Marked(
     markedHighlight({
-      // emptyLangClass: 'hljs',
-      // langPrefix: 'hljs language-',
+      emptyLangClass: 'hljs',
+      langPrefix: 'hljs language-',
       highlight(code, lang) {
         const language = hljs.getLanguage(lang) ? lang : 'java';
         return hljs.highlight(code, { language }).value;
@@ -24,52 +24,39 @@
     })
   );
 
-  // Define props using $props
   let { content = '' } = $props<{ content: string }>();
-
-  // Use $derived for reactive computation
-  let htmlContent = $derived(content || '');
+  let htmlContent = $derived(marked.parse(content.trim()));
 </script>
 
-
-<!--{@html marked.parse('```javascript\nconst highlight = "code";\n```')};-->
-
-<div class="prose dark:prose-invert markdown-content">
-  {@html marked.parse(htmlContent)}
+<div class="prose-sm dark:prose-invert markdown-content">
+  {@html htmlContent}
 </div>
-<style>
-  .prose {
-    max-width: 65ch;
-    line-height: 1.6;
-  }
 
-  /* Code block background and border */
-  .markdown-content :global(pre) {
-    /*background-color: transparent; !* Inherit from parent bubble *!*/
-    border: 1px solid var(--color-surface-200-800);
-    border-radius: 0.375rem;
-    padding: 1rem;
-    overflow-x: auto;
-    font-size: 0.875rem;
+<style>
+  .prose-sm {
+    max-width: 65ch;
     line-height: 1.5;
   }
 
-  /* Code text */
+  .markdown-content :global(pre) {
+    border: 1px solid var(--color-surface-200-800);
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+    overflow-x: auto;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
   .markdown-content :global(code) {
     font-family: var(--code-font-family), monospace;
   }
 
-  /* Links */
   .markdown-content :global(a) {
-    /*color: var(--color-primary-500);*/
     transition: color 0.2s ease;
   }
 
-  .markdown-content :global(a:hover) {
-    /*color: var(--color-primary-600);*/
-  }
-
-  /* Ensure all text elements inherit the root color */
   .markdown-content :global(p),
   .markdown-content :global(h1),
   .markdown-content :global(h2),
@@ -81,9 +68,17 @@
   .markdown-content :global(ol),
   .markdown-content :global(li) {
     color: inherit;
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
   }
 
-  /* Scrollbar styles */
+  .markdown-content :global(p:empty),
+  .markdown-content :global(pre:empty) {
+    display: none;
+    margin: 0;
+    padding: 0;
+  }
+
   .markdown-content :global(pre::-webkit-scrollbar) {
     height: 6px;
   }
