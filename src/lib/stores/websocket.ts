@@ -23,6 +23,8 @@ export function createWebSocketStore(username: string) {
 
 	let ws: WebSocket | null = null;
 	let token: string | null = null;
+	let typingTimeout: NodeJS.Timeout | null = null;
+	let messageBuffer: Message[] = [];
 
 	const unsubscribeAuth = authStore.subscribe((store) => (token = store?.token));
 
@@ -76,20 +78,30 @@ export function createWebSocketStore(username: string) {
 					update((msgs) => msgs.filter((msg) => msg.id !== data.message));
 					break;
 				case MessageType.TYPING:
+					if (typingTimeout) clearTimeout(typingTimeout);
 					typing.set(true);
-					setTimeout(() => typing.set(false), 3000);
+					typingTimeout = setTimeout(() => typing.set(false), 5000);
 					break;
 				default:
-					update((msgs) => {
-						const newMessage: Message = {
-							id: data.id || crypto.randomUUID(),
-							source: data.from,
-							text: data.message,
-							type: data.type,
-							timestamp: data.ts
-						};
-						return sortMessagesSafe([...msgs, newMessage]);
-					});
+					const newMessage: Message = {
+						id: data.id || crypto.randomUUID(),
+						source: data.from,
+						text: data.message,
+						type: data.type,
+						timestamp: data.ts
+					};
+
+					if (data.from === MessageSource.AGENT) {
+						messageBuffer.push(newMessage);
+						setTimeout(() => {
+							typing.set(false);
+							update((msgs) => sortMessagesSafe([...msgs, ...messageBuffer]));
+							messageBuffer = [];
+						}, 500); // Delay to give typing indicator time to show
+					} else {
+						typing.set(false);
+						update((msgs) => sortMessagesSafe([...msgs, newMessage]));
+					}
 			}
 		};
 

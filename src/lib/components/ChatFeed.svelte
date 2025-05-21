@@ -63,27 +63,18 @@
     const last = sortedMessages.at(-1);
     if (!last) return;
 
-    // If it's a new message, scroll regardless of sender
     if (lastMessageId !== last.id && chatContainer) {
       lastMessageId = last.id;
-
-      // Use smooth scroll only if user is near bottom
       const nearBottom = chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < 120;
       chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: nearBottom ? 'smooth' : 'auto' });
     }
   });
 
-  // $effect(() => {
-  //   const last = sortedMessages.at(-1);
-  //   if (!last) return;
-  //
-  //   if (lastMessageId !== last.id) {
-  //     lastMessageId = last.id;
-  //     if (last.source === MessageSource.AGENT && userNearBottom) {
-  //       scrollToBottom();
-  //     }
-  //   }
-  // });
+  $effect(() => {
+    if (props.typing && chatContainer) {
+      scrollToBottom();
+    }
+  });
 </script>
 
 <div bind:this={chatContainer} use:autoscroll class="overflow-y-auto h-full px-4 py-2" onscroll={handleScroll}>
@@ -97,7 +88,7 @@
          class:justify-start={message.source === MessageSource.AGENT}>
 
       {#if message.source === MessageSource.AGENT}
-        <Avatar name="bot" classes="mt-1 self-start" />
+        <Avatar name="bot" classes="mt-1 self-start animate-pulse" />
         <div class="relative rounded-2xl px-4 py-2 max-w-prose text-sm whitespace-pre-wrap bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-white shadow-md">
           <MarkdownRenderer content={message.text} />
           <button
@@ -126,7 +117,15 @@
   {/each}
 
   {#if props.typing}
-    <div class="text-sm text-surface-500 dark:text-surface-400 italic px-4 py-1">{props.username} is typing...</div>
+    <div in:fade class="flex gap-2 items-center px-1 py-2 animate-typing-entry">
+      <Avatar name="bot" classes="mt-1 self-start animate-pulse" />
+      <div class="typing-bubble relative">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <div class="typing-label">{props.username} is typing...</div>
+      </div>
+    </div>
   {/if}
 </div>
 
@@ -139,3 +138,81 @@
     Jump to latest
   </button>
 {/if}
+
+<style>
+  .typing-bubble {
+    background-color: var(--color-surface-200);
+    color: var(--color-surface-900);
+    padding: 0.5rem 0.75rem;
+    border-radius: 1rem;
+    max-width: fit-content;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    font-size: 1.25rem;
+    line-height: 1;
+  }
+
+  .dark .typing-bubble {
+    background-color: var(--color-surface-700);
+    color: var(--color-surface-100);
+  }
+
+  .typing-bubble .dot {
+    width: 6px;
+    height: 6px;
+    background-color: currentColor;
+    border-radius: 50%;
+    animation: blink 1.2s infinite ease-in-out;
+  }
+
+  .typing-bubble .dot:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  .typing-bubble .dot:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  .typing-bubble .typing-label {
+    font-size: 0.65rem;
+    margin-left: 0.5rem;
+    opacity: 0.75;
+  }
+
+  .typing-bubble::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 10px;
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 8px solid var(--color-surface-200);
+  }
+
+  .dark .typing-bubble::before {
+    border-right-color: var(--color-surface-700);
+  }
+
+  @keyframes blink {
+    0%, 80%, 100% { opacity: 0; }
+    40% { opacity: 1; }
+  }
+
+  @keyframes typing-entry {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-typing-entry {
+    animation: typing-entry 0.3s ease-out;
+  }
+</style>
