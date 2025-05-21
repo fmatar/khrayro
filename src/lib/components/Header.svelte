@@ -27,7 +27,7 @@
       <span class="text-xl font-medium text-surface-800 dark:text-surface-100">/ {workflowName}</span>
     </div>
     <div class="flex gap-1 flex-wrap">
-      {#each badges as badge}
+      {#each badges as badge (badge)}
         <span class="badge preset-filled-primary-500 text-xs font-medium">{badge}</span>
       {/each}
     </div>

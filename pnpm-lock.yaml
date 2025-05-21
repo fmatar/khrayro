@@ -14,12 +14,18 @@ importers:
       highlight.js:
         specifier: ^11.11.1
         version: 11.11.1
+      highlightjs-line-numbers.js:
+        specifier: ^2.9.0
+        version: 2.9.0
       keycloak-js:
         specifier: ^26.2.0
         version: 26.2.0
       marked:
         specifier: ^15.0.12
         version: 15.0.12
+      marked-highlight:
+        specifier: ^2.2.1
+        version: 2.2.1(marked@15.0.12)
       rehype-highlight:
         specifier: ^7.0.2
         version: 7.0.2
@@ -1395,6 +1401,9 @@ packages:
     resolution: {integrity: sha512-Xwwo44whKBVCYoliBQwaPvtd/2tYFkRQtXDWj1nackaV2JPXx3L0+Jvd8/qCJ2p+ML0/XVkJ2q+Mr+UVdpJK5w==}
     engines: {node: '>=12.0.0'}
 
+  highlightjs-line-numbers.js@2.9.0:
+    resolution: {integrity: sha512-hMYK5VU+Qi0HmkkdZxamV71ALu9Hq2icQk2WP8OX5q7IPMilSv47ILlJu+fBvxAQdhjW6wONnSQeypsbeRM7WQ==}
+
   html-encoding-sniffer@4.0.0:
     resolution: {integrity: sha512-Y22oTqIU4uuPgEemfz7NDJz6OeKf12Lsu+QC+s3BVpda64lTiMYCyGwg5ki4vFxkMwQdeZDl2adZoqUgdFuTgQ==}
     engines: {node: '>=18'}
@@ -1613,6 +1622,11 @@ packages:
 
   markdown-table@3.0.4:
     resolution: {integrity: sha512-wiYz4+JrLyb/DqW2hkFJxP7Vd7JuTDm77fvbM8VfEQdmSMqcImWeeRbHwZjBjIFki/VaMK2BhFi7oUUZeM5bqw==}
+
+  marked-highlight@2.2.1:
+    resolution: {integrity: sha512-SiCIeEiQbs9TxGwle9/OwbOejHCZsohQRaNTY2u8euEXYt2rYUFoiImUirThU3Gd/o6Q1gHGtH9qloHlbJpNIA==}
+    peerDependencies:
+      marked: '>=4 <16'
 
   marked@15.0.12:
     resolution: {integrity: sha512-8dD6FusOQSrpv9Z1rdNMdlSgQOIP880DHqnohobOmYLElGEqAL/JvxvuxZO16r4HtjTlfPRDC1hbvxC9dPN2nA==}
@@ -3718,6 +3732,8 @@ snapshots:
 
   highlight.js@11.11.1: {}
 
+  highlightjs-line-numbers.js@2.9.0: {}
+
   html-encoding-sniffer@4.0.0:
     dependencies:
       whatwg-encoding: 3.1.1
@@ -3909,6 +3925,10 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.0
 
   markdown-table@3.0.4: {}
+
+  marked-highlight@2.2.1(marked@15.0.12):
+    dependencies:
+      marked: 15.0.12
 
   marked@15.0.12: {}
 

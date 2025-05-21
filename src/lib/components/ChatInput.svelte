@@ -1,20 +1,19 @@
 <script lang="ts">
   import IconSend from '@lucide/svelte/icons/send';
-  import IconTrash from '@lucide/svelte/icons/trash-2';
+  import IconTrash from '@lucide/svelte/icons/trash';
   import IconMic from '@lucide/svelte/icons/mic';
   import IconPaperclip from '@lucide/svelte/icons/paperclip';
 
-  export let inputText: string = '';
-  export let maxCharacters: number = 1000;
-  export let messagesCount: number = 0;
-  export let onSend: () => void = () => {
+
+  export let inputText = '';
+  export let maxCharacters = 1000;
+  export let messagesCount = 0;
+
+  export let onSend = () => {
   };
-  export let onClear: () => void = () => {
-  };
-  export let onVoice: () => void = () => {
-  };
-  export let onAttach: () => void = () => {
-  };
+  export let onClear = () => {};
+  export let onVoice = () => {};
+  export let onAttach = () => {};
 
   let textareaRef: HTMLTextAreaElement;
 
@@ -30,67 +29,61 @@
     textareaRef.style.height = 'auto';
     const scrollHeight = textareaRef.scrollHeight;
     const lineHeight = parseFloat(getComputedStyle(textareaRef).lineHeight);
-    const maxHeight = lineHeight * 5; // limit to ~5 lines
+    const maxHeight = lineHeight * 5;
     textareaRef.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
   }
 </script>
 
 <footer class="p-4">
   <div class="mx-auto max-w-3xl space-y-3">
-    <div
-      class="border-surface-200-800 focus-within:border-primary-500 overflow-hidden rounded border transition-all duration-200"
-    >
+    <div class="rounded-xl border border-surface-300 dark:border-surface-700 bg-surface-100 dark:bg-surface-900 shadow-sm focus-within:ring-2 focus-within:ring-primary-500 transition">
       <textarea
         bind:value={inputText}
         bind:this={textareaRef}
         on:keydown={handleKeydown}
         on:input={adjustTextareaHeight}
-        placeholder="Compose message..."
-        rows="3"
-        class="input textarea-scrollbar w-full resize-none border-none bg-surface-100-900 text-surface-900 dark:text-surface-100 placeholder:text-surface-400 text-sm transition-all duration-200 focus:ring-0 pr-6"
+        placeholder="Type your message here..."
+        rows="6"
+        class="input textarea-scrollbar w-full resize-none border-none bg-transparent px-4 py-3 text-sm text-surface-900 dark:text-surface-100 placeholder:text-surface-400 focus:outline-none focus:ring-0"
         aria-label="Message input"
-      >
-
-      </textarea>
+      ></textarea>
     </div>
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="text-surface-400 text-xs" aria-live="polite">
-          {messagesCount} {messagesCount === 1 ? 'message' : 'messages'}
-        </span>
-        <span class="text-surface-400 text-xs" aria-live="polite">
-          {inputText.length}/{maxCharacters}
-        </span>
+
+    <div class="flex items-center justify-between text-xs text-surface-500 dark:text-surface-400">
+      <div class="flex gap-3">
+        <span>{messagesCount} {messagesCount === 1 ? 'message' : 'messages'}</span>
+        <span>{inputText.length}/{maxCharacters}</span>
       </div>
-      <div class="flex gap-2">
+
+      <div class="flex items-center gap-2">
         <button
           on:click={onClear}
-          class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full p-2 shadow-sm transition-colors duration-200"
+          class="icon-button"
           aria-label="Clear chat"
         >
-          <IconTrash size={16} class="shrink-0" />
+          <IconTrash size={16} />
         </button>
         <button
           on:click={onVoice}
-          class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full p-2 shadow-sm transition-colors duration-200"
-          aria-label="Record voice message"
+          class="icon-button"
+          aria-label="Record voice"
         >
-          <IconMic size={16} class="shrink-0" />
+          <IconMic size={16} />
         </button>
         <button
           on:click={onAttach}
-          class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full p-2 shadow-sm transition-colors duration-200"
+          class="icon-button"
           aria-label="Attach file"
         >
-          <IconPaperclip size={16} class="shrink-0" />
+          <IconPaperclip size={16} />
         </button>
         <button
           on:click={onSend}
-          class="bg-primary-500 hover:bg-primary-600 text-surface-100 rounded-full p-2 shadow-sm transition-colors duration-200 disabled:pointer-events-none disabled:opacity-50"
+          class="icon-button bg-primary-500 hover:bg-primary-600 text-white disabled:opacity-50 disabled:pointer-events-none"
           disabled={inputText.trim() === '' || inputText.length > maxCharacters}
           aria-label="Send message"
         >
-          <IconSend size={16} class="shrink-0" />
+          <IconSend size={16} />
         </button>
       </div>
     </div>
@@ -100,8 +93,16 @@
 <style>
   .input {
     box-sizing: border-box;
-    min-height: 1.5em;
     max-height: 7.5em;
     overflow-y: auto;
+    line-height: 1.4;
+  }
+
+  .icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    width: 36px;
   }
 </style>

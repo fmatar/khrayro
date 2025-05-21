@@ -1,71 +1,43 @@
 @import 'tailwindcss';
-
-@plugin '@tailwindcss/forms';
-@plugin '@tailwindcss/typography';
-
 @import '@skeletonlabs/skeleton';
 @import '@skeletonlabs/skeleton/optional/presets';
 @import '@skeletonlabs/skeleton/themes/mona';
 @import '@skeletonlabs/skeleton/themes/vox';
+
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 @source '../node_modules/@skeletonlabs/skeleton-svelte/dist';
 
 :root {
-	--base-font-family: 'Poppins', sans-serif;
-	--heading-font-family: 'Poppins', sans-serif;
-	--anchor-font-family: 'Poppins', sans-serif;
-}
-/* src/app.css */
-
-/* Global scrollbar styles for Webkit browsers (Chrome, Safari, Edge) */
-*::-webkit-scrollbar {
-  width: 6px;
+  --code-font-family: 'JetBrains Mono', monospace;
+  --base-font-family: 'Poppins', sans-serif;
+  --heading-font-family: 'Poppins', sans-serif;
+  --anchor-font-family: 'Poppins', sans-serif;
 }
 
-*::-webkit-scrollbar-track {
-  background: var(--color-surface-100-900, #1f2937);
-  border-radius: 4px;
-  border: 1px solid transparent;
-}
 
-*::-webkit-scrollbar-thumb {
-  background: var(--color-primary-500, #8b5cf6);
-  border-radius: 4px;
-  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.3);
-  transition: background 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease;
-  min-height: 20px;
-  opacity: 0.3;
-  border: 1px solid var(--color-surface-200-800, #4b5563);
-}
+/*!*!* Specific overrides for textarea scrollbar *!*!*/
+/*.textarea-scrollbar::-webkit-scrollbar {*/
+/*  width: 3px;*/
+/*}*/
 
-*::-webkit-scrollbar-thumb:hover {
-  background: var(--color-primary-600, #7c3aed);
-  box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.4);
-  opacity: 1;
-  border-color: var(--color-primary-600, #7c3aed);
-}
-
-/* Specific overrides for textarea scrollbar */
-.textarea-scrollbar::-webkit-scrollbar {
-  width: 3px;
-}
-
-.textarea-scrollbar::-webkit-scrollbar-track {
-  background: var(--color-surface-100-900, #1f2937);
-  border-radius: 4px;
-  /* Add a transparent border to create separation from the textarea border */
-  border: 2px solid transparent;
-}
+/*.textarea-scrollbar::-webkit-scrollbar-track {*/
+/*  background: var(--color-surface-100-900, #1f2937);*/
+/*  border-radius: 4px;*/
+/*  !* Add a transparent border to create separation from the textarea border *!*/
+/*  border: 2px solid transparent;*/
+/*}*/
 
 .textarea-scrollbar::-webkit-scrollbar-thumb {
   background: var(--color-primary-500, #8b5cf6);
   border-radius: 4px;
-  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 0 0px rgba(0, 0, 0, 0.3);
   transition: background 0.2s ease, box-shadow 0.2s ease, opacity 0.3s ease;
-  min-height: 20px;
-  opacity: 0.3;
+/*  min-height: 20px;*/
+/*  opacity: 0.3;*/
   border: 1px solid var(--color-surface-200-800, #4b5563);
 }
 
@@ -76,21 +48,15 @@
   border-color: var(--color-primary-600, #7c3aed);
 }
 
-/* Global scrollbar styles for Firefox */
+/*!* Global scrollbar styles for Firefox *!*/
 html {
   scrollbar-width: thin;
   scrollbar-color: var(--color-primary-500, #8b5cf6) var(--color-surface-100-900, #1f2937);
 }
 
-/* Specific overrides for textarea in Firefox */
+/*!* Specific overrides for textarea in Firefox *!*/
 .textarea-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: var(--color-primary-500, #8b5cf6) var(--color-surface-100-900, #1f2937);
 }
 
-/* Fallback for browsers that don’t support custom scrollbars */
-@supports not (scrollbar-width: thin) {
-  html {
-    overflow-y: auto;
-  }
-}
