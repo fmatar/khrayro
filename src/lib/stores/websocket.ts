@@ -23,7 +23,6 @@ export function createWebSocketStore(username: string) {
 
 	let ws: WebSocket | null = null;
 	let token: string | null = null;
-	let typingTimeout: NodeJS.Timeout | null = null;
 	let messageBuffer: Message[] = [];
 
 	const unsubscribeAuth = authStore.subscribe((store) => (token = store?.token));
@@ -78,12 +77,17 @@ export function createWebSocketStore(username: string) {
 					update((msgs) => msgs.filter((msg) => msg.id !== data.message));
 					break;
 				case MessageType.TYPING:
-					if (typingTimeout) clearTimeout(typingTimeout);
 					typing.set(true);
-					typingTimeout = setTimeout(() => typing.set(false), 5000);
+					setTimeout(() => typing.set(false), 3000);
+					requestAnimationFrame(() => {
+						const chatFeed = document.querySelector('[data-chat-feed]');
+						if (chatFeed) {
+							chatFeed.scrollTo({ top: chatFeed.scrollHeight, behavior: 'smooth' });
+						}
+					});
 					break;
 				default:
-					const newMessage: Message = {
+					let newMessage: Message = {
 						id: data.id || crypto.randomUUID(),
 						source: data.from,
 						text: data.message,

@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { Avatar } from '@skeletonlabs/skeleton-svelte';
-  import { theme } from '$lib/stores/theme';
-  import { userProfile } from '$lib/stores/authStore';
-  import { logout } from '$lib/services/authService';
+  import {Avatar} from '@skeletonlabs/skeleton-svelte';
+  import {theme} from '$lib/stores/theme';
+  import {userProfile} from '$lib/stores/authStore';
+  import {logout} from '$lib/services/authService';
   import IconSun from '@lucide/svelte/icons/sun';
   import IconMoon from '@lucide/svelte/icons/moon';
   import IconLogOut from '@lucide/svelte/icons/log-out';
@@ -12,14 +12,14 @@
   export let badges = ['Badge 1', 'Badge 2', 'Badge 3', '+5'];
   export let description = 'Automate content creation, approval, and publishing workflows for marketing teams.';
 
-  let userAvatar = $userProfile?.attributes?.['avatar'] || 'https://i.pravatar.cc/150?img=24';
+  let userAvatar = $userProfile?.attributes?.['avatar']?.toString() || 'https://i.pravatar.cc/150?img=24';
 
   function handleLogout() {
     logout();
   }
 </script>
 
-<header class="flex items-center justify-between p-2 top-0" >
+<header class="flex items-center justify-between p-2 top-0">
   <!-- Left Section: Project Info -->
   <div class="flex flex-col gap-2 max-w-[70%]">
     <div class="flex items-baseline gap-2 flex-wrap">
@@ -44,9 +44,9 @@
       title="Toggle Theme"
     >
       {#if $theme === 'dark'}
-        <IconSun size={20} />
+        <IconSun size={20}/>
       {:else}
-        <IconMoon size={20} />
+        <IconMoon size={20}/>
       {/if}
     </button>
 
@@ -56,14 +56,14 @@
       class="btn-icon preset-tonal hover:preset-filled"
       aria-label="Log out of the application"
     >
-      <IconLogOut size={20} />
+      <IconLogOut size={20}/>
     </button>
 
     <Avatar src={userAvatar}
-      name="User"
-      size="size-8"
-      rounded="rounded-full"
-      background="bg-surface-200-800"
-      classes="ring-2 ring-surface-300 dark:ring-surface-700 hover:ring-primary-500 transition-all duration-200" />
+            name="User"
+            size="size-8"
+            rounded="rounded-full"
+            background="bg-surface-200-800"
+            classes="ring-2 ring-surface-300 dark:ring-surface-700 hover:ring-primary-500 transition-all duration-200"/>
   </div>
 </header>

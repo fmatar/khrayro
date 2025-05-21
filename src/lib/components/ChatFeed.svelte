@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { Avatar } from '@skeletonlabs/skeleton-svelte';
   import MarkdownRenderer from '$lib/components/MarkdownRenderer.svelte';
   import type { Message } from '$lib/types/message';
@@ -16,7 +17,8 @@
 
   let chatContainer: HTMLElement | null = null;
   let lastMessageId: string | null = null;
-  let userNearBottom = true;
+  let userIsScrolling = false;
+  let lastScrollTime = 0;
   let showJumpToBottom = $state(false);
 
   const sortedMessages = $derived(
@@ -55,8 +57,9 @@
     if (!chatContainer) return;
     const { scrollTop, scrollHeight, clientHeight } = chatContainer;
     const nearBottom = scrollHeight - scrollTop - clientHeight < 120;
-    userNearBottom = nearBottom;
     showJumpToBottom = !nearBottom;
+    userIsScrolling = true;
+    lastScrollTime = Date.now();
   }
 
   $effect(() => {
@@ -72,12 +75,29 @@
 
   $effect(() => {
     if (props.typing && chatContainer) {
-      scrollToBottom();
+      const now = Date.now();
+      const recentlyScrolled = now - lastScrollTime < 2000;
+      if (!userIsScrolling || !recentlyScrolled) {
+        setTimeout(() => scrollToBottom(), 200);
+      }
+    }
+  });
+
+  onMount(() => {
+    const saved = sessionStorage.getItem('chatScrollTop');
+    if (chatContainer && saved) {
+      chatContainer.scrollTop = parseInt(saved);
+    }
+  });
+
+  $effect(() => {
+    if (chatContainer) {
+      sessionStorage.setItem('chatScrollTop', chatContainer.scrollTop.toString());
     }
   });
 </script>
 
-<div bind:this={chatContainer} use:autoscroll class="overflow-y-auto h-full px-4 py-2" onscroll={handleScroll}>
+<div bind:this={chatContainer} use:autoscroll class="px-4 py-2" onscroll={handleScroll}>
   {#each sortedMessages as message, i (message.id)}
     {#if needSeparator(sortedMessages, i)}
       <div class="text-xs text-center text-surface-500 dark:text-surface-400 pt-4">{getDateLabel(message.timestamp)}</div>
@@ -117,13 +137,15 @@
   {/each}
 
   {#if props.typing}
-    <div in:fade class="flex gap-2 items-center px-1 py-2 animate-typing-entry">
-      <Avatar name="bot" classes="mt-1 self-start animate-pulse" />
-      <div class="typing-bubble relative">
-        <span class="dot"></span>
-        <span class="dot"></span>
-        <span class="dot"></span>
-        <div class="typing-label">{props.username} is typing...</div>
+    <div in:fade class="flex gap-2 items-start px-1 py-2 animate-typing-entry">
+      <Avatar name="u" classes="mt-1 self-start" />
+      <div class="relative max-w-prose rounded-2xl bg-primary-500 text-white px-4 py-2 text-sm shadow-md">
+        <div class="flex gap-3 items-center">
+          <span class="h-1 w-1 rounded-full bg-white opacity-60 animate-ping"></span>
+          <span class="h-1 w-1 rounded-full bg-white opacity-60 animate-ping delay-[150ms]"></span>
+          <span class="h-1 w-1 rounded-full bg-white opacity-60 animate-ping delay-[300ms]"></span>
+        </div>
+        <div class="mt-1 text-xs opacity-75">Khrayro is thinking...</div>
       </div>
     </div>
   {/if}
@@ -138,81 +160,3 @@
     Jump to latest
   </button>
 {/if}
-
-<style>
-  .typing-bubble {
-    background-color: var(--color-surface-200);
-    color: var(--color-surface-900);
-    padding: 0.5rem 0.75rem;
-    border-radius: 1rem;
-    max-width: fit-content;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    font-size: 1.25rem;
-    line-height: 1;
-  }
-
-  .dark .typing-bubble {
-    background-color: var(--color-surface-700);
-    color: var(--color-surface-100);
-  }
-
-  .typing-bubble .dot {
-    width: 6px;
-    height: 6px;
-    background-color: currentColor;
-    border-radius: 50%;
-    animation: blink 1.2s infinite ease-in-out;
-  }
-
-  .typing-bubble .dot:nth-child(2) {
-    animation-delay: 0.2s;
-  }
-  .typing-bubble .dot:nth-child(3) {
-    animation-delay: 0.4s;
-  }
-
-  .typing-bubble .typing-label {
-    font-size: 0.65rem;
-    margin-left: 0.5rem;
-    opacity: 0.75;
-  }
-
-  .typing-bubble::before {
-    content: '';
-    position: absolute;
-    left: -8px;
-    top: 10px;
-    width: 0;
-    height: 0;
-    border-top: 6px solid transparent;
-    border-bottom: 6px solid transparent;
-    border-right: 8px solid var(--color-surface-200);
-  }
-
-  .dark .typing-bubble::before {
-    border-right-color: var(--color-surface-700);
-  }
-
-  @keyframes blink {
-    0%, 80%, 100% { opacity: 0; }
-    40% { opacity: 1; }
-  }
-
-  @keyframes typing-entry {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .animate-typing-entry {
-    animation: typing-entry 0.3s ease-out;
-  }
-</style>

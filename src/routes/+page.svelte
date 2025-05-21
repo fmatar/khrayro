@@ -1,19 +1,19 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import {onMount} from 'svelte';
   import ConfirmationModal from '$lib/components/ConfirmationModal.svelte';
   import ChatInput from '$lib/components/ChatInput.svelte';
   import ChatFeed from '$lib/components/ChatFeed.svelte';
   import ConnectionStatus from '$lib/components/ConnectionStatus.svelte';
   import ErrorDisplay from '$lib/components/ErrorDisplay.svelte';
-  import { createWebSocketStore } from '$lib/stores/websocket';
+  import {createWebSocketStore} from '$lib/stores/websocket';
 
   let username = 'user';
   const MAX_CHARACTERS = 8000;
 
   // WebSocket store & derived helpers
   const ws = createWebSocketStore(username);
-  const { state: connState, error: connError, typing } = ws;
-  const messages = { subscribe: ws.subscribe };
+  const {state: connState, error: connError, typing} = ws;
+  const messages = {subscribe: ws.subscribe};
 
   // UI state
   let inputText = '';
@@ -52,34 +52,33 @@
   }
 </script>
 
-<div class="bg-surface-50-950 flex h-full flex-col">
-  <ConnectionStatus connState={$connState} />
-  <ErrorDisplay connError={$connError} />
 
-  <div class="rounded-container flex-1 overflow-hidden">
-    <ChatFeed
-      messages={$messages}
-      typing={$typing}
-      username={username}
-      openDeleteModal={openDeleteModal}
-    />
-  </div>
+<ConnectionStatus connState={$connState}/>
+<ErrorDisplay connError={$connError}/>
 
-  <ChatInput
-    bind:inputText
-    maxCharacters={MAX_CHARACTERS}
-    messagesCount={$messages.length}
-    onSend={sendMessage}
-    onClear={clearChat}
-    onVoice={() => console.log('Voice')}
-    onAttach={() => console.log('Attach')}
-  />
-
-  <ConfirmationModal
-    open={showModal}
-    onConfirm={confirmDelete}
-    onCancel={cancelDelete}
-    title="Confirm Deletion"
-    message="Are you sure you want to delete this message?"
+<div class="flex-1 overflow-y-auto rounded-container">
+  <ChatFeed
+    messages={$messages}
+    typing={$typing}
+    username={username}
+    openDeleteModal={openDeleteModal}
   />
 </div>
+
+<ChatInput
+  bind:inputText
+  maxCharacters={MAX_CHARACTERS}
+  messagesCount={$messages.length}
+  onSend={sendMessage}
+  onClear={clearChat}
+  onVoice={() => console.log('Voice')}
+  onAttach={() => console.log('Attach')}
+/>
+
+<ConfirmationModal
+  open={showModal}
+  onConfirm={confirmDelete}
+  onCancel={cancelDelete}
+  title="Confirm Deletion"
+  message="Are you sure you want to delete this message?"
+/>
