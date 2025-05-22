@@ -78,7 +78,7 @@ export function createWebSocketStore(username: string) {
 					break;
 				case MessageType.TYPING:
 					typing.set(true);
-					setTimeout(() => typing.set(false), 3000);
+					// setTimeout(() => typing.set(false), 3000);
 					requestAnimationFrame(() => {
 						const chatFeed = document.querySelector('[data-chat-feed]');
 						if (chatFeed) {
@@ -87,7 +87,7 @@ export function createWebSocketStore(username: string) {
 					});
 					break;
 				default:
-					let newMessage: Message = {
+					const newMessage: Message = {
 						id: data.id || crypto.randomUUID(),
 						source: data.from,
 						text: data.message,
