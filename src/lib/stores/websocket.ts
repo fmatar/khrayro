@@ -25,19 +25,14 @@ export function createWebSocketStore(username: string) {
 	let token: string | null = null;
 	let messageBuffer: Message[] = [];
 
-	const unsubscribeAuth = authStore.subscribe((store) => (token = store?.token));
-
-	function sortMessagesSafe(msgs: Message[]) {
-		return msgs
-			.filter((m) => !isNaN(new Date(m.timestamp).getTime()))
-			.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-	}
+	let retryCount = 0;
+	const maxRetries = 5;
+	let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 
 	function connect() {
-		if (ws !== null) return;
+		if (ws !== null || retryCount > maxRetries) return;
 
 		state.set(ConnectionState.CONNECTING);
-
 		const url = `${WS_URL}/${encodeURIComponent(username)}?token=${token}`;
 
 		try {
@@ -47,16 +42,23 @@ export function createWebSocketStore(username: string) {
 			error.set('Failed to create WebSocket.');
 			state.set(ConnectionState.ERROR);
 			ws = null;
+			scheduleReconnect();
 			return;
 		}
 
 		ws.onopen = () => {
 			state.set(ConnectionState.CONNECTED);
 			error.set(null);
+			retryCount = 0;
+			if (reconnectTimeout) {
+				clearTimeout(reconnectTimeout);
+				reconnectTimeout = null;
+			}
 		};
 
 		ws.onmessage = (event) => {
 			const data: WebSocketMessage | WebSocketMessage[] = JSON.parse(event.data);
+
 			if (Array.isArray(data)) {
 				const history: Message[] = data.map((m) => ({
 					id: m.id,
@@ -73,12 +75,13 @@ export function createWebSocketStore(username: string) {
 				case MessageType.CLEAR_CHAT:
 					set([]);
 					break;
+
 				case MessageType.DELETE_MESSAGE:
 					update((msgs) => msgs.filter((msg) => msg.id !== data.message));
 					break;
+
 				case MessageType.TYPING:
 					typing.set(true);
-					// setTimeout(() => typing.set(false), 3000);
 					requestAnimationFrame(() => {
 						const chatFeed = document.querySelector('[data-chat-feed]');
 						if (chatFeed) {
@@ -86,7 +89,8 @@ export function createWebSocketStore(username: string) {
 						}
 					});
 					break;
-				default:
+
+				default: {
 					const newMessage: Message = {
 						id: data.id || crypto.randomUUID(),
 						source: data.from,
@@ -101,11 +105,12 @@ export function createWebSocketStore(username: string) {
 							typing.set(false);
 							update((msgs) => sortMessagesSafe([...msgs, ...messageBuffer]));
 							messageBuffer = [];
-						}, 500); // Delay to give typing indicator time to show
+						}, 500);
 					} else {
 						typing.set(false);
 						update((msgs) => sortMessagesSafe([...msgs, newMessage]));
 					}
+				}
 			}
 		};
 
@@ -113,15 +118,53 @@ export function createWebSocketStore(username: string) {
 			state.set(ConnectionState.DISCONNECTED);
 			if (ev.code !== 1000) {
 				error.set(`Connection closed unexpectedly (code ${ev.code})`);
+				scheduleReconnect();
 			}
 			ws = null;
 		};
 
 		ws.onerror = (ev) => {
-			console.error('WebSocket error', ev);
+			console.error('WebSocket error:', ev);
 			error.set('WebSocket encountered an error.');
 			state.set(ConnectionState.ERROR);
 		};
+	}
+
+	function scheduleReconnect() {
+		if (retryCount >= maxRetries) {
+			console.warn('Max reconnect attempts reached.');
+			return;
+		}
+
+		const delay = Math.min(1000 * 2 ** retryCount, 15000);
+		console.info(`Retrying connection in ${delay}ms (attempt ${retryCount + 1}/${maxRetries})`);
+		retryCount++;
+
+		reconnectTimeout = setTimeout(() => {
+			connect();
+		}, delay);
+	}
+
+	function close() {
+		if (reconnectTimeout) {
+			clearTimeout(reconnectTimeout);
+			reconnectTimeout = null;
+		}
+		retryCount = 0;
+
+		if (ws) {
+			ws.close(1000, 'Client closed connection');
+			ws = null;
+			state.set(ConnectionState.DISCONNECTED);
+		}
+	}
+
+	const unsubscribeAuth = authStore.subscribe((store) => (token = store?.token));
+
+	function sortMessagesSafe(msgs: Message[]) {
+		return msgs
+			.filter((m) => !isNaN(new Date(m.timestamp).getTime()))
+			.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 	}
 
 	function ensureOpen(): boolean {
@@ -180,14 +223,6 @@ export function createWebSocketStore(username: string) {
 				ts: new Date().toISOString()
 			})
 		);
-	}
-
-	function close() {
-		if (ws) {
-			ws.close();
-			ws = null;
-			state.set(ConnectionState.DISCONNECTED);
-		}
 	}
 
 	function subscribe(run: (value: Message[]) => void, invalidate?: () => void) {

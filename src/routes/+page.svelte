@@ -22,7 +22,18 @@
 
   onMount(() => {
     ws.connect();
-    return () => ws.close();
+
+    const resume = () => {
+      if (document.visibilityState === 'visible') {
+        ws.connect();
+      }
+    };
+    document.addEventListener('visibilitychange', resume);
+
+    return () => {
+      document.removeEventListener('visibilitychange', resume);
+      ws.close();
+    };
   });
 
   function sendMessage() {
